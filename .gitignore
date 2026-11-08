@@ -5,3 +5,6 @@ __pycache__/
 results/
 logs/
 .env
+.claude/
+figures/precal/
+figures/abm_preview/

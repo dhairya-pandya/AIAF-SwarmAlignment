@@ -18,6 +18,57 @@ uv venv -p 3.12 && uv pip install -e '.[dev]'
 pytest
 ```
 
+## Pipeline
+
+```bash
+# LLM providers (any subset). The mock provider works offline.
+export OPENROUTER_API_KEY=...   # or NVIDIA_API_KEY=..., or run `ollama serve` with a model pulled
+
+# 1. Pilot (DESIGN §10.1): N=6, R=3, S2 and S4, f in {0, 1/6}, 3 seeds per model; prints the go criteria
+hiveguard pilot --models openrouter:<model> nvidia:<model>
+
+# 2. Calibrate the ABM's kappa and lambda on the pilot runs, then freeze them
+hiveguard calibrate --pilot results/pilot.csv --out results/abm_params.json
+
+# 3. Stage A: ABM screen over the full grid, plus the red-team searchers
+hiveguard stageA --params results/abm_params.json
+hiveguard search --params results/abm_params.json --strategies S2 S4 S9 --topologies scale_free full
+
+# 4. Stage B: LLM blocks
+hiveguard stageB --block core    --models openrouter:<model>
+hiveguard stageB --block tier2   --models openrouter:<model>
+hiveguard stageB --block modules --strategies <best> <worst> --models openrouter:<model>
+hiveguard stageB --block attacks --strategies <best> --models openrouter:<model>
+hiveguard stageB --block confirm --strategies <most> <least> --redteam results/redteam.json --models openrouter:<model>
+
+# Replay any LLM run byte for byte from the cache
+hiveguard replay <run_id>
+```
+
+Every LLM call is cached in `.cache/llm.sqlite`, keyed by `sha256(provider, model, prompt, seed, temperature)`.
+Every run writes `logs/<run_id>.jsonl`: config, then per agent and round the prompt, prompt hash, raw
+response, parsed output and choice.
+
+## Code map
+
+| File | Contents |
+|---|---|
+| `hiveguard/config.py` | `RunConfig`, seeding, YAML IO |
+| `hiveguard/task.py` | hidden-profile best-of-n generator |
+| `hiveguard/topology.py` | ring, small-world, scale-free, star, full |
+| `hiveguard/world.py` | task, graph, roles and target for one run (shared by ABM and LLM) |
+| `hiveguard/abm.py` | ABM twins of S0–S10, attacks A1–A5, modules M1–M6 |
+| `hiveguard/search.py` | red-team searchers: random, hub, GA, binary PSO, MAP-Elites |
+| `hiveguard/stage_a.py` | Stage A grid and red-team runner (multiprocess) |
+| `hiveguard/schema.py` | pydantic output schema and tolerant JSON extraction |
+| `hiveguard/llm.py` | OpenAI-compatible client (NVIDIA, OpenRouter, Ollama, mock), rate limits, sqlite cache |
+| `hiveguard/agents.py` | prompt builders |
+| `hiveguard/llm_strategies.py` | LLM views and update instructions for S0–S10 |
+| `hiveguard/env.py` | LLM round loop, modules, board, JSONL logs, replay |
+| `hiveguard/llm_runs.py` | pilot and Stage B blocks (resumable CSV) |
+| `hiveguard/calibrate.py` | kappa/lambda fit on pilot runs |
+| `hiveguard/metrics.py` | Acc, Con, T50, deadlock, consensus time, f*, bootstrap, Holm |
+
 ## Pre-existing work declaration
 
 Pre-sprint materials (written 2026-11-01 to 2026-11-05): `RESEARCH.md` (literature notes) and

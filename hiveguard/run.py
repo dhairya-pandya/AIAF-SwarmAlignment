@@ -1,0 +1,119 @@
+"""CLI: abm / stageA / search / pilot / calibrate / stageB / replay."""
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+from .abm import ABMParams, run_abm
+from .config import RunConfig
+
+
+def load_params(path: str | None) -> ABMParams:
+    if not path:
+        return ABMParams()
+    d = json.loads(Path(path).read_text())
+    return ABMParams(**{k: v for k, v in d.items() if k in ABMParams.__dataclass_fields__})
+
+
+def _cfg_args(p: argparse.ArgumentParser) -> None:
+    p.add_argument("--strategy", default="S2")
+    p.add_argument("--topology", default="full")
+    p.add_argument("--n-agents", type=int, default=12)
+    p.add_argument("--f", type=float, default=0.0)
+    p.add_argument("--attack", default="A2")
+    p.add_argument("--onset", type=int, default=None)
+    p.add_argument("--placement", default="random")
+    p.add_argument("--modules", nargs="*", default=[])
+    p.add_argument("--seed", type=int, default=0)
+
+
+def _cfg(a) -> RunConfig:
+    return RunConfig(strategy=a.strategy, topology=a.topology, n_agents=a.n_agents, f=a.f,
+                     attack=a.attack, onset=a.onset, placement=a.placement, modules=a.modules,
+                     seed=a.seed)
+
+
+def main(argv=None) -> None:
+    ap = argparse.ArgumentParser("hiveguard")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    p = sub.add_parser("abm", help="one ABM run")
+    _cfg_args(p)
+    p.add_argument("--params")
+
+    p = sub.add_parser("stageA", help="ABM screen over the full grid")
+    p.add_argument("--out", default="results/stageA.csv")
+    p.add_argument("--params")
+    p.add_argument("--seeds", type=int, default=30)
+    p.add_argument("--quick", action="store_true", help="N=12 only, 5 seeds")
+    p.add_argument("--workers", type=int)
+
+    p = sub.add_parser("search", help="red-team searchers on the ABM")
+    p.add_argument("--out", default="results/redteam.json")
+    p.add_argument("--params")
+    p.add_argument("--strategies", nargs="+", default=["S2"])
+    p.add_argument("--topologies", nargs="+", default=["scale_free"])
+    p.add_argument("--k", type=int, default=3)
+    p.add_argument("--budget", type=int, default=500)
+    p.add_argument("--repeats", type=int, default=10)
+    p.add_argument("--workers", type=int)
+
+    for name in ("llm", "pilot", "stageB"):
+        p = sub.add_parser(name)
+        if name == "llm":
+            _cfg_args(p)
+        else:
+            p.add_argument("--block", default="core",
+                           help="core | tier2 | modules | attacks | confirm (stageB only)")
+            p.add_argument("--strategies", nargs="+", help="modules/attacks/confirm: best (and worst) Tier-1")
+            p.add_argument("--redteam", help="confirm: results/redteam.json")
+        p.add_argument("--models", nargs="+", default=["mock:mock"])
+        p.add_argument("--logs", default="logs")
+        p.add_argument("--out", default=f"results/{name}.csv")
+        p.add_argument("--cache", default=".cache/llm.sqlite")
+        p.add_argument("--seeds", type=int, default=3)
+        p.add_argument("--workers", type=int, default=8)
+
+    p = sub.add_parser("calibrate", help="fit kappa, lambda to pilot runs and freeze them")
+    p.add_argument("--pilot", default="results/pilot.csv")
+    p.add_argument("--out", default="results/abm_params.json")
+
+    p = sub.add_parser("replay", help="re-run a logged LLM run from the cache and compare bytes")
+    p.add_argument("run_id")
+    p.add_argument("--logs", default="logs")
+    p.add_argument("--cache", default=".cache/llm.sqlite")
+
+    a = ap.parse_args(argv)
+
+    if a.cmd == "abm":
+        m = run_abm(_cfg(a), load_params(a.params))
+        m.pop("choices")
+        print(json.dumps(m, indent=2))
+    elif a.cmd == "stageA":
+        from .stage_a import run_stage_a
+        kw = dict(seeds=a.seeds)
+        if a.quick:
+            kw.update(n_grid=[12], seeds=5)
+        df = run_stage_a(a.out, load_params(a.params), workers=a.workers, **kw)
+        print(f"{len(df)} runs -> {a.out}")
+    elif a.cmd == "search":
+        from .stage_a import run_red_team
+        res = run_red_team(a.out, load_params(a.params), a.strategies, a.topologies, a.k,
+                           a.budget, a.repeats, a.workers)
+        print(f"{len(res)} searches -> {a.out}")
+    elif a.cmd in ("llm", "pilot", "stageB"):
+        from . import llm_runs
+        llm_runs.dispatch(a, _cfg(a) if a.cmd == "llm" else None)
+    elif a.cmd == "calibrate":
+        from .calibrate import calibrate
+        calibrate(a.pilot, a.out)
+    elif a.cmd == "replay":
+        from .env import replay
+        ok = replay(a.run_id, a.logs, a.cache)
+        print("replay identical" if ok else "replay DIFFERS")
+        raise SystemExit(0 if ok else 1)
+
+
+if __name__ == "__main__":
+    main()

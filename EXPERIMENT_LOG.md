@@ -88,3 +88,10 @@ This is a lab notebook kept in time order (IST). It records what was run, what c
   - Tier-2 (S5, S6, S8; 3 seeds) done.
 - **04:25** S11 merged (D22). Stage A + S11 combined into `results/stageA_with_s11.csv`; S11 is excluded from confirmatory tests by code.
   - Final analysis launched with pre-registered resampling (bootstrap 2000 per cell, 10k for hypotheses, 9999 Mantel permutations). Output: `results/results.json`, `figures/`.
+- **04:35 Reproducibility check** found the option-name ordering bug (D23); fixed, with log-based recovery in `replay`.
+  - Replay is byte-identical on spot checks from every block.
+  - The full re-check of all logged runs is in `results/replay_check.csv`.
+- **04:40–05:10 Paper.**
+  - Results, Discussion and Conclusion written from `results/results.json`.
+  - The main body was cut to fit 8 pages: tables of strategies, modules and the hypothesis scorecard moved to the appendices.
+  - The curves figure lost its spare legend row. The final analysis was re-run to regenerate the figures; numbers are unchanged.

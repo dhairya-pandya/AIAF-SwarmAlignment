@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import itertools
 import json
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -274,10 +275,28 @@ def run_llm(cfg: RunConfig, client: LLMClient, log_dir="logs", workers: int = 8)
     return LLMEnv(cfg, client, log_dir, workers).run()
 
 
+def _logged_names(cfg: RunConfig, lines: list[str]) -> list[str] | None:
+    """Option-name order used when the run was logged. Runs made before the name-order fix (DEVIATIONS D23)
+    drew it from a set, so it is recovered by matching each round-0 prompt hash against the 4! orders."""
+    turns = [t for t in map(json.loads, lines[1:]) if t.get("type") == "turn" and t["round"] == 0]
+    if not turns:
+        return None
+    for order in itertools.permutations(LLMEnv(cfg, LLMClient(":memory:"), None).task.option_names):
+        env = LLMEnv(cfg, LLMClient(":memory:"), None)
+        env.task.option_names = list(order)
+        if all(_h(json.dumps(env._messages(t["agent"], 0))) == t["prompt_hash"] for t in turns[:3]):
+            return list(order)
+    return None
+
+
 def replay(run_id: str, log_dir="logs", cache=".cache/llm.sqlite") -> bool:
     path = Path(log_dir) / f"{run_id}.jsonl"
-    first = json.loads(path.read_text().splitlines()[0])
-    cfg = RunConfig.from_dict(first["config"])
+    lines = path.read_text().splitlines()
+    cfg = RunConfig.from_dict(json.loads(lines[0])["config"])
     tmp = Path(log_dir) / "_replay"
-    LLMEnv(cfg, LLMClient(cache, replay_only=True), tmp).run()
+    env = LLMEnv(cfg, LLMClient(cache, replay_only=True), tmp)
+    names = _logged_names(cfg, lines)
+    if names:
+        env.task.option_names = names
+    env.run()
     return (tmp / f"{run_id}.jsonl").read_bytes() == path.read_bytes()

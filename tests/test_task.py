@@ -57,3 +57,13 @@ def test_hub_placement_star():
 def test_m4_adds_uninformed():
     w = build_world(RunConfig(modules=["M4"]))
     assert w.N == 14 and w.uninformed.sum() == 2 and w.honest.sum() == 12
+
+
+def test_option_names_independent_of_hash_seed():
+    import os
+    import subprocess
+    import sys
+    code = "from hiveguard.task import generate_task; print(generate_task(3, 12).option_names)"
+    outs = {subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
+                           env={**os.environ, "PYTHONHASHSEED": str(h)}).stdout for h in (0, 1, 2)}
+    assert len(outs) == 1

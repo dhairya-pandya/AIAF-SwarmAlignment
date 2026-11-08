@@ -12,142 +12,45 @@ Multi-agent LLM systems increasingly coordinate through designs borrowed from sw
 
 ## 1. Introduction
 
-LLM agents increasingly work in groups. They debate, share boards and scratchpads, and follow lead agents. In August 2026, about 1,200 agents in the Hugging Face incident coordinated through a message board they had built in a shared directory, and one agent came to direct hundreds of others [I1].
+LLM agents increasingly work in groups: they debate, share boards and scratchpads, and follow lead agents. In August 2026, about 1,200 agents in the Hugging Face incident coordinated through a message board they had built in a shared directory, and one agent came to direct hundreds of others [I1]. Group coordination opens a failure mode that single-model alignment cannot see. A small compromised minority can feed false information into the group, and the honest majority's own coordination rules spread it. We call the share of honest agents misled this way *contamination*, and we ask how a swarm's coordination design determines it.
 
-Group coordination opens a failure mode that single-model alignment cannot see. A small compromised minority can feed false information into the group, and the honest majority's own coordination rules spread it. We call the share of honest agents misled this way *contamination*. We ask how a swarm's coordination design determines it.
+Many agent-coordination designs come from swarm intelligence: particle swarms, ant stigmergy, bee foraging, wolf-pack hierarchies and flocking [A1–A8]. Swarm theory predicts that topology controls spread [A4, G5] and that committed minorities flip groups above a tipping fraction [C7, C8, E9]. Natural collectives also evolved defences, mostly negative feedback: pheromone evaporation [A2], honeybee stop signals [C3] and quorum thresholds [C4, C5]. Safety work on LLM collectives has tested these ideas only piecemeal: topology alone [G5], capability rather than safety [E2, E3], or infection-style attacks that ignore coordination rules [G2, G3]. Critics argue that animal metaphors repackage a few components [B1, B2], but nobody has asked whether *components* or *metaphors* decide robustness.
 
-Many agent-coordination designs come from swarm intelligence: particle swarms, ant stigmergy, bee foraging, wolf-pack hierarchies and flocking [A1–A8]. Swarm theory makes falsifiable predictions about compromise:
-- topology controls spread [A4, G5];
-- committed minorities flip groups above a tipping fraction [C7, C8, E9].
+We build **Swarm Immunity**, a pre-registered benchmark (Figure 1). LLM agents solve a hidden-profile task that forces them to pool facts, under 11 bio-inspired coordination strategies, while up to a quarter of them are compromised with one of five attack types. Attackers are placed at random, on hubs, or by red-team metaheuristics, and we test six bio-inspired defences for both protection and usefulness cost. Every strategy also has an agent-based twin, calibrated on pilot LLM runs, which we use for a 327,600-run screen and then check against the LLM runs. We find that **leader hierarchies are captured** once about a fifth of agents are compromised ($f^\star=0.21$); that **a honeybee-style quorum on first-hand evidence is the only defence that reduces LLM contamination**, at no measurable accuracy cost, while pheromone-style evaporation makes hierarchies worse; and that **the classical twin does not transfer**: it overestimates LLM contamination by 0.35, fails to rank conditions, and gets the topology effect backwards, because on a dense graph debating LLM agents see enough honest evidence to reject fabricated claims.
 
-Natural collectives also evolved defences against bad information, mostly negative feedback: pheromone evaporation [A2], honeybee stop signals [C3] and quorum thresholds [C4, C5]. Safety work on LLM collectives has tested these ideas only piecemeal: topology alone [G5], capability rather than safety [E2, E3], or infection-style attacks that ignore coordination rules [G2, G3]. Critics argue that animal metaphors repackage a few components [B1, B2], but nobody has asked whether *components* or *metaphors* decide robustness.
-
-We build **Swarm Immunity**, a pre-registered benchmark. LLM agents solve a hidden-profile task, which forces them to pool facts, under 11 bio-inspired coordination strategies. Up to a quarter of the agents are compromised, using five attack types placed at random, on hubs, or by red-team metaheuristics. We test six bio-inspired defences against both contamination and usefulness. Each strategy also has an agent-based twin, calibrated on pilot LLM runs, which we use for a 327,600-run screen and then check against the LLM runs.
-
-We find three things:
-- **Leader hierarchies are captured** once about a fifth of agents are compromised ($f^\star=0.21$).
-- **Quorum works; evaporation backfires.** A honeybee-style quorum on first-hand evidence is the only defence that reduces LLM contamination, and it costs no measurable accuracy. Pheromone-style evaporation makes hierarchies worse.
-- **The classical twin does not transfer.** It overestimates LLM contamination by 0.35 and mis-ranks conditions. It even gets the topology effect backwards: on a dense graph, debating LLM agents see enough honest evidence to reject fabricated claims.
-
-**Contributions.**
-1. A pre-registered safety comparison of bio-inspired coordination for LLM swarms: 11 strategies, 5 attacks, 5 topologies, 6 defences, with every deviation logged.
-2. Defences scored the AI-control way [H1]: contamination removed against accuracy lost when nobody attacks.
-3. Red-team metaheuristics for worst-case attacks, and a measured test of how far a calibrated classical swarm model transfers to reasoning agents.
-4. A testbed in which every LLM run replays byte-for-byte from a committed cache, with no API key needed.
+**Contributions.** (1) A pre-registered safety comparison of bio-inspired coordination for LLM swarms, with every deviation logged. (2) Defences scored AI-control style [H1], as contamination removed against accuracy lost. (3) A measured test of how far a calibrated classical swarm model, and the worst-case attacks found on it, transfer to reasoning agents. (4) A testbed in which every LLM run replays byte-for-byte from a committed cache, with no API key.
 
 ## 2. Related work
 
-**Swarm intelligence and its critics.** We draw strategies from:
-- ant colony optimisation [A2];
-- PSO [A3, A4];
-- artificial bee colony [A6];
-- firefly [A7];
-- grey wolf [A8];
-- response thresholds [A9];
-- boids [A1].
+**Swarm intelligence and its critics.** Our strategies come from ant colony optimisation [A2], PSO [A3, A4], artificial bee colony [A6], firefly [A7], grey wolf [A8], response thresholds [A9] and boids [A1]. Sörensen [B1] and Camacho-Villalón et al. [B2] show that many such metaphors reuse a few components, so we tag strategies by component (H10).
 
-Sörensen [B1] and Camacho-Villalón et al. [B2] show that many such metaphors reuse a few components. We therefore tag strategies by component and test grouping (H10).
+**Collective decisions.** Our task is a best-of-$n$ problem [C6] posed as a hidden profile [C13]. Stop signals [C3] and quorum sensing [C4, C5] motivate two defences. Committed-minority tipping points are known from theory [C8], human experiments [C7] and LLM populations [E9].
 
-**Collective decisions.** Our task is a best-of-$n$ problem [C6] posed as a hidden profile [C13]. Honeybee stop signals [C3] and quorum sensing [C4, C5] motivate two of our defences. Committed-minority tipping points are known from theory [C8], human experiments [C7] and LLM populations [E9].
+**Robot and LLM swarms.** Voter-model swarms fail under Byzantine robots [D3]. LLM swarm work measures capability, not safety [E1–E4, E8].
 
-**Robot and LLM swarms.** Voter-model swarms fail under Byzantine robots [D3], and identity is a core swarm weakness [D2]. LLM swarm work so far measures capability: PSO in weight space [E1], swarm benchmarks [E2], boids and ACO with LLM agents [E3, E4], and stigmergy in LLM societies [E8].
-
-**Multi-agent safety.** Compromise spreads through agent networks via infectious jailbreaks [G2], prompt infection [G3] and knowledge flooding [G4]. NetSafe [G5] shows that topology matters. Huang et al. [G6] find hierarchies resilient to *faulty* agents; we find them fragile to *strategic* ones. Becker et al. [G7] show that debate's robustness depends on who is uninformed. We extend this line from topology alone to topology × coordination algorithm × defence, with optimised attackers. Like AgentBreeder [G10] we use evolutionary search, but over attacks rather than scaffolds.
+**Multi-agent safety.** Compromise spreads through agent networks via infectious jailbreaks [G2], prompt infection [G3] and knowledge flooding [G4]. NetSafe [G5] shows that topology matters, and Becker et al. [G7] show that debate's robustness depends on who is uninformed. Huang et al. [G6] find hierarchies resilient to *faulty* agents; we find them fragile to *strategic* ones. We extend this line to topology × coordination algorithm × defence, with optimised attackers. Like AgentBreeder [G10] we use evolutionary search, but over attacks rather than scaffolds.
 
 ## 3. Methods
 
-![Method overview. (1) A hidden-profile task: each agent's own facts point to a wrong option, and only the pooled facts reveal the correct one. (2) A fraction f of agents is compromised and pushes one wrong target option using attack type A1–A5. (3) Agents coordinate with one of 11 strategies, grouped by the family of the strategy's biological inspiration. Each strategy has an LLM form and an agent-based (ABM) twin. (4) Optional defence modules M1–M6. (5) Metrics: honest accuracy (Acc), contamination (Con, the share of honest agents ending on the target), tipping point f* and spread speed T50. Bottom: the red-team searchers propose attacker placements, onsets and types, scored on the calibrated ABM twin. Each searcher's best attack is replayed on LLM swarms (transfer check). The tipping curve in panel 5 is schematic.](../figures/paper/fig0_overview.png)
+![Method overview. (1) A hidden-profile task: each agent's facts point to a wrong option; only pooled facts reveal the correct one. (2) A fraction f of agents is compromised and pushes a wrong target (attacks A1–A5). (3) Agents coordinate by one of 11 strategies, grouped by biological family; each has an LLM form and an ABM twin. (4) Defence modules M1–M6. (5) Metrics. Bottom: red-team searchers optimise attacks on the twin; each best attack is replayed on LLM swarms. Panel 5's curve is schematic.](../figures/paper/fig0_overview.png)
 
-### 3.1 Task
+**Task.** Each instance is a fictional best-of-4 choice. Option $o$ has six attributes $v_{o,a}\in\{0,\dots,10\}$, and public weights $w_a\in\{1,\dots,5\}$ set its quality $Q_o=\sum_a w_a v_{o,a}$; the correct option is $o^\star=\arg\max_o Q_o$. The 24 facts are dealt so that each agent holds about four, shown with their points (e.g. `A.durability = 8 (+6 pts)`, D17). The generator accepts an instance only if the best option leads by 4–16 points and fewer than 40% of agents could find $o^\star$ from their own facts. Pooling is therefore necessary, which makes misinformation costly [C13]. Facts are dealt before roles, so honest agents hold the same facts at every attacker fraction $f$, and attacker sets are nested across $f$ (D1, D4). All compromised agents push one wrong *target* $t$.
 
-Each instance is a fictional best-of-4 choice. Option $o$ has six attributes $v_{o,a}\in\{0,\dots,10\}$, and public weights $w_a\in\{1,\dots,5\}$ set its quality $Q_o=\sum_a w_a v_{o,a}$. The correct option is $o^\star=\arg\max_o Q_o$. The 24 facts are dealt so that each agent holds about four, shown with their points, e.g. `A.durability = 8 (+6 pts)` (D17).
+**Agents.** Each run has $N=12$ agents and $R=6$ synchronous rounds. In round 0 agents answer from their own facts; later rounds add the strategy's view. Replies are validated JSON: a choice, a confidence, at most 8 claims (option, attribute, value, source = `own` or an agent id), at most 3 endorsements and 3 stop signals, and a 60-word message. Agents are `gpt-oss-120b` (low reasoning effort, temperature 0.7, via OpenRouter). It was the only one of five models to solve the full-information task reliably: oracle accuracy 0.97–1.00 against 0.42–0.58 (D18). Attackers additionally see a hidden instruction naming the target (Appendix C). Every call is cached, and every run replays byte-for-byte.
 
-The generator accepts an instance only if two conditions hold:
-- the best option leads the second by 4–16 points;
-- fewer than 40% of agents would find $o^\star$ from their own facts, treating unknown values as 5.
+**Strategies.** Table 6 (Appendix D) lists the 11 strategies: no communication (S0b solo, S1 majority vote), neighbour debate (S2), particle swarm (S3), shared-medium designs (ant stigmergy S4, bee colony S5, honeybee dances with stop signals and quorum S9, response-threshold verification S10), firefly attraction (S6), confidence-elected leaders (grey wolf, S7) and boids (S8). Only what an agent sees and how it is asked to update differ. Topologies are ring, small-world, scale-free, star and full. Each strategy has an **agent-based twin** in which agents update beliefs on the option simplex by the strategy's rule (Appendix D). Its deference $\kappa=0.30$ and confidence sensitivity $\lambda=0$ were fitted to the pilot and frozen before any main run (D19).
 
-Pooling is therefore necessary, and misinformation is costly: this is a hidden profile [C13]. Facts are dealt before roles, so honest agents hold the same facts at every attacker fraction $f$, and attacker sets are nested across $f$ (D1, D4). Compromised agents lose their facts, and all of them push one wrong *target* option $t$.
+**Defences, attacks, red team.** The six add-on modules (Table 7, Appendix D) are M1 evaporation (down-weight senders whose choice is unchanged), M2 stop signals (hide a sender stopped by ≥2 agents), M3 quorum (switch only if ≥2 agents show supporting first-hand claims), M4 uninformed dilution, M5 model diversity (three model families) and M6 rewiring to a ring. The attacks are A1 confident assertion, A2 fabricated first-hand claims, A3 a sleeper (A2 from round 3), A4 sybils (3 aliases on shared media) and A5 maximal confidence. Five red-team searchers (random, greedy hub, GA, binary PSO, MAP-Elites) each get 500 twin evaluations over attacker nodes × onset × attack type. Each searcher's best attack is replayed on LLM swarms.
 
-### 3.2 Agents
+**Metrics and statistics.** For honest agents $\mathcal H$ with final choices $c_i$, accuracy is $\mathrm{Acc}=\frac{1}{|\mathcal H|}\sum_{i\in\mathcal H}\mathbb 1[c_i=o^\star]$ and contamination is $\mathrm{Con}=\frac{1}{|\mathcal H|}\sum_{i\in\mathcal H}\mathbb 1[c_i=t]$; Con at $f=0$ is the chance floor. The tipping point $f^\star$ is where a logistic fit of Con against $f$ crosses 0.5. A module's usefulness cost is its change in Acc at $f=0$, and its value is contamination removed per unit of accuracy lost. Seeds share task, graph and attackers across arms, so contrasts are paired. We report 95% bootstrap CIs and Holm-correct H1–H10, separately for ABM and LLM evidence (D12).
 
-Each run has $N=12$ agents and $R=6$ synchronous rounds. In round 0 each agent answers from its own facts; in later rounds it also sees what its strategy shows it. Replies are validated JSON with these fields:
-- a choice and a confidence in $[0,1]$;
-- at most 8 claims $(o,a,v,\text{source})$, where the source is `own` or the id of the agent the claim came from;
-- at most 3 endorsements and at most 3 stop signals;
-- a message of at most 60 words.
-
-A reply that fails validation gets one repair prompt; if that also fails, the agent abstains for the round. Agents are `gpt-oss-120b` (low reasoning effort, temperature 0.7, via OpenRouter). It was the only model of five to solve the full-information task reliably (oracle accuracy 0.97–1.00 vs 0.42–0.58; D18). Attackers additionally see a hidden instruction naming the target (Appendix C). Every call is cached, so every run replays byte-for-byte.
-
-We use five topologies: ring, small-world, scale-free, star and full.
-
-### 3.3 Coordination strategies
-
-Table: Coordination strategies. Tier 1 strategies run in the core LLM block; Tier 2/3 run in the ABM screen and an optional LLM block. Every strategy uses the same rounds, facts and output schema; only what an agent sees and how it is told to update differ.
-| ID | Strategy | Inspiration | What an agent sees in a social round |
-|---|---|---|---|
-| S0a / S0b | Oracle / solo | baselines | all facts / own facts only |
-| S1 | Independent vote | wisdom of crowds | own facts; R independent samples, group majority |
-| S2 | Neighbour debate | DeGroot averaging | neighbours' last choices, messages and claims |
-| S3 | Particle swarm (PSO) | bird flocking, abstracted | own previous answer, personal best, neighbourhood best |
-| S4 | Stigmergy (ACO) | ant pheromone trails | posts sampled from a shared board ∝ endorsements; no direct messages |
-| S5 | Artificial bee colony | foraging bees | claims weighted by first-hand corroboration; stale claims abandoned by scouts |
-| S6 | Firefly | firefly attraction | neighbours within 2 hops, weighted by distance-decayed brightness |
-| S7 | Grey wolf hierarchy | wolf pack | messages of the round's three most confident agents (leaders) |
-| S8 | Boids | flocking | neighbours' messages; a separation rule keeps a dissenting view when >80% agree |
-| S9 | Waggle dance + quorum | honeybee nest-site choice | dances on a board with strength; stop signals; commit only at quorum |
-| S10 | Response-threshold roles | division of labour | board claims; agents become verifiers with probability rising with unverified claims |
-
-Every strategy uses the same facts, rounds and schema; only what an agent sees and how it is asked to update differ. Each strategy is also tagged with eight mechanism components (Figure 4) for the components-vs-metaphor test (H10).
-
-**Agent-based twin.** Each strategy has an ABM twin. An agent there holds a belief on the 4-option simplex and updates it with the strategy's rule, e.g. DeGroot averaging for S2 (details in Appendix D). Two parameters were fitted to the pilot LLM runs and frozen before any main run: deference $\kappa=0.30$ and confidence sensitivity $\lambda=0$ (D19). The twin runs about $10^5$ runs per minute, which makes a full screen and red-team search affordable.
-
-### 3.4 Defences, attacks and red team
-
-Table: Defence modules; each can be added to any strategy.
-| ID | Module (inspiration) | Rule |
-|---|---|---|
-| M1 | Evaporation (pheromone decay [A2]) | A sender whose choice is unchanged for $s$ rounds is down-weighted by $(1-\rho)^s$, with $\rho=0.3$ |
-| M2 | Stop signals (honeybees [C3]) | A sender whose claim receives stop signals from $\ge2$ distinct agents is hidden for 2 rounds |
-| M3 | Quorum on first-hand evidence (quorum sensing [C4, C5]) | An agent may switch to option $o$ only if $\ge q=2$ distinct agents have shown it first-hand (`own`) claims supporting $o$; otherwise its previous choice stands |
-| M4 | Uninformed dilution (schooling fish [C2]) | Adds agents that hold no facts |
-| M5 | Diversity (mixed populations) | Honest agents are split across two model families (LLM) or a spread of $\kappa$ (ABM) |
-| M6 | Sparse topology | The communication graph is rewired to a ring |
-
-**Attacks.** All five attack types push the target $t$:
-- A1, confident assertion without claims;
-- A2, fabricated first-hand claims;
-- A3, a sleeper that switches to A2 after round 3;
-- A4, a sybil with 3 aliases on shared media;
-- A5, maximal confidence.
-
-**Red team.** Five searchers compete at equal budgets: random, greedy hub, a genetic algorithm, binary PSO and MAP-Elites. Each makes 500 twin evaluations of (attacker nodes × onset × attack type). Each searcher's best attack is then replayed on LLM swarms.
-
-### 3.5 Metrics and statistics
-
-Let $\mathcal H$ be the honest agents and $c_i$ agent $i$'s final choice.
-- **Accuracy:** $\mathrm{Acc}=\frac{1}{|\mathcal H|}\sum_{i\in\mathcal H}\mathbb 1[c_i=o^\star]$.
-- **Contamination:** $\mathrm{Con}=\frac{1}{|\mathcal H|}\sum_{i\in\mathcal H}\mathbb 1[c_i=t]$. Its value at $f=0$ is the chance floor.
-- **Tipping point $f^\star$:** where a logistic fit of Con against $f$ crosses 0.5.
-- **Usefulness cost of a module:** its change in Acc at $f=0$.
-- **Module value:** contamination removed per unit of accuracy lost.
-
-Seeds are the unit of analysis. Within a seed, the task, graph and attackers are shared across arms, so contrasts are paired. We report 95% bootstrap CIs and Holm-correct H1–H10, separately for ABM and LLM evidence (D12).
-
-**Protocol.** The study ran in three stages, as pre-registered:
-1. A pilot, followed by calibration.
-2. **Stage A**, the ABM screen: 12 strategies × 7 module settings × 5 topologies × 8 values of $f$ × $N\in\{12,50,200\}$ × 30 seeds.
-3. **Stage B**, LLM runs on $f\in\{0,1/12,3/12\}$ × 6 seeds, in these blocks:
-   - the core block (Tier-1 strategies);
-   - defences on the best and worst strategy by a pre-stated rule (S4 and S7);
-   - attacks;
-   - red-team replay;
-   - Tier-2 strategies (3 seeds).
+**Protocol.** A pilot was followed by calibration. Stage A, the ABM screen, covered 12 strategies × 7 module settings × 5 topologies × 8 values of $f$ × $N\in\{12,50,200\}$ × 30 seeds. Stage B ran LLM swarms at $f\in\{0,1/12,3/12\}$ × 6 seeds: a core block, defences on the best and worst strategy by a pre-stated rule (S4, S7), attacks, red-team replay, and Tier-2 strategies (3 seeds).
 
 ## 4. Results
 
-Every number below comes from `results/results.json`, produced by `hiveguard analyze` from the committed run tables. LLM cells use $N=12$, $R=6$ and 6 seeds; Tier-2 strategies use 3. ABM cells use 30 seeds. Brackets are 95% bootstrap CIs over seeds. In total, Stage B made 405 LLM runs with 28,008 agent calls. 99.9% of replies were valid and none were refusals. Including the pilot and the model screens, the API spend was 8.14 USD. Stage A made 327,600 ABM runs.
+All numbers come from `results/results.json`. Stage B made 405 LLM runs with 28,008 agent calls (99.9% valid replies, no refusals; 8.14 USD in total). Stage A made 327,600 ABM runs. Brackets are 95% bootstrap CIs over seeds.
 
-### 4.1 Which swarms resist a compromised minority? (RQ1)
+### 4.1 Which swarms resist a compromised minority?
 
 Table: LLM swarms on the full graph, $N=12$, attack A2. Acc$_0$ is accuracy with no attackers. Con is contamination with 1 or 3 compromised agents out of 12. The chance floor of Con is about 0.18, the rate at which honest agents pick the target unaided (S0b). $f^\star$ is the fitted tipping point; ">0.25" means no transition inside the tested range.
 | Strategy | Acc$_0$ | Con, $f=1/12$ | Con, $f=3/12$ | $f^\star$ |
@@ -166,28 +69,21 @@ Table: LLM swarms on the full graph, $N=12$, attack A2. Acc$_0$ is accuracy with
 
 **Hierarchy is the one design that tips.** The grey-wolf strategy (S7) is the only one that crosses half contamination in range: $f^\star=0.21$ [0.17, 0.39], inside the 0.10–0.25 band reported for committed minorities [C7, C8]. Attackers who report high confidence become its leaders.
 
-**Debate and flocking on a dense graph resist.** Debate (S2) is the most useful strategy (Acc$_0$ = 0.69) and is uncontaminated at $f=3/12$. Shared-medium strategies (S4, S5, S9) stay near the chance floor but cost usefulness (Acc$_0$ 0.43–0.46). Against compute-matched majority voting, debate is not worse under attack (H0 supported; +0.09 and +0.26, CIs include 0).
+**Debate on a dense graph resists.** Debate (S2) is the most useful strategy (Acc$_0$ = 0.69) and is uncontaminated at $f=3/12$. Shared-medium strategies (S4, S5, S9) stay near the chance floor but cost usefulness (Acc$_0$ 0.43–0.46). Debate is not worse than compute-matched majority voting under attack (H0 supported; +0.09 and +0.26, with CIs that include 0).
 
-### 4.2 Swarm theory transfers to the agent-based twin, not to LLM swarms (RQ2, RQ6)
+### 4.2 Swarm theory transfers to the twin, not to LLM swarms
 
 ![Contamination against attacker fraction. Lines and bands: calibrated ABM twin at N = 12, 50, 200 (mean and 95% bootstrap CI over 30 seeds; full topology, attack A2). Diamonds with bars: LLM swarms (gpt-oss-120b, N = 12, 6 seeds; 3 for S5, S6, S8). † S11 is exploratory (Section 4.6).](../figures/fig3_con_vs_f.png)
 
-**The twin reproduces classic swarm theory** (Figure 2):
-- Dense graphs spread contamination more and faster than the ring (H1 supported; for S2, +0.13 [0.10, 0.17], with $T_{50}$ 0.93 rounds earlier).
-- Opinion-averaging strategies tip early: S2 at $f^\star=0.05$, S6 0.03, S7 0.04, S8 0.06.
-- Shared-medium strategies tip late: S9 0.26, S4 0.36.
+**The twin reproduces classic swarm theory** (Figure 2). Dense graphs spread contamination more and faster than the ring (H1 supported; for S2, +0.13 [0.10, 0.17], with $T_{50}$ 0.93 rounds earlier). Opinion-averaging strategies tip early ($f^\star$ = 0.05 for S2, 0.03 for S6, 0.04 for S7, 0.06 for S8), while shared-medium ones tip late (0.26 for S9, 0.36 for S4). Transitions are gradual, with a median 10–90% width of 0.69 (H2 not supported).
 
-Transitions are gradual (median 10–90% width 0.69; H2 not supported).
-
-**LLM swarms break these predictions.**
-- For LLM debate, the full graph is *less* contaminated than the ring: −0.22 [−0.33, −0.12] (H1 not supported).
-- The calibrated twin over-predicts contamination by +0.35 [0.24, 0.48] per cell and does not rank the 24 matched cells (ρ = −0.02; H6 not supported, Figure 3).
+**LLM swarms break these predictions.** For LLM debate, the full graph is *less* contaminated than the ring: −0.22 [−0.33, −0.12] (H1 not supported). The calibrated twin over-predicts contamination by +0.35 [0.24, 0.48] per cell and does not rank the 24 matched cells (ρ = −0.02; H6 not supported; Figure 3).
 
 ![Calibrated ABM prediction against observed LLM contamination for the 24 matched strategy × topology × f cells. The dashed line is perfect agreement. Most cells fall below it: LLM swarms are more robust than the twin predicts.](../figures/fig7_abm_vs_llm.png){width=3.2in}
 
-**Why: evidence, not dilution** (exploratory; Appendix E). On the full graph, a debating agent sees about 66 claims per round, against 12 on the ring, and the attacker share is the same (about 0.10). Yet target adoption falls from 0.20 on the ring to 0.04 on the full graph. With near-complete honest evidence, a reasoning agent recomputes the answer instead of averaging opinions. Adoption reaches 0.53 only when attacker claims are more than half of what an agent sees.
+**Why: evidence, not dilution** (exploratory; Appendix E). On the full graph a debating agent sees about 66 claims per round, against 12 on the ring, with the same attacker share (about 0.10). Yet target adoption falls from 0.20 on the ring to 0.04 on the full graph. With near-complete honest evidence, a reasoning agent recomputes the answer instead of averaging opinions. Adoption reaches 0.53 only when attacker claims are more than half of what an agent sees.
 
-### 4.3 Quorum on first-hand evidence is the best defence; evaporation backfires (RQ3)
+### 4.3 Quorum is the best defence; evaporation backfires
 
 Table: Defence modules on LLM swarms (S4 and S7 pooled, $f=3/12$, 6 seeds). ΔCon and ΔAcc$_0$ are module minus no-module, paired by seed; negative ΔCon is protective.
 | Module | ΔCon (pooled) | ΔCon on S7 (wolf) | ΔAcc$_0$ (usefulness) |
@@ -200,49 +96,27 @@ Table: Defence modules on LLM swarms (S4 and S7 pooled, $f=3/12$, 6 seeds). ΔCo
 
 **Quorum is the only module that reduces LLM contamination, and it costs no accuracy.** It ranks first by value in both the twin (P(rank 1) = 0.95) and the LLM swarms (0.83), and it roughly halves leader capture in S7. It remains inconclusive after Holm correction (H3).
 
-**Evaporation backfires.** Down-weighting agents whose choice stays unchanged hurts S7 (+0.31): honest agents revise their choices as evidence arrives, while confident attackers keep leading.
+**Evaporation backfires.** It raises S7's contamination by +0.31: honest agents revise as evidence arrives, while confident attackers keep leading. In the twin, stop signals cut contamination by 0.22 but raise deadlock by 0.36 (H4 not supported). Model diversity and dilution had no measurable LLM effect (H5 inconclusive).
 
-**Other modules.** In the twin, stop signals cut contamination by 0.22 but raise deadlock by 0.36 (H4 not supported). Model diversity and dilution had no measurable LLM effect (H5 inconclusive).
+### 4.4 Components, red team, and exploratory reputation
 
-### 4.4 Components, red team, and an exploratory reputation strategy
+**Components vs. metaphors.** In the twin, vulnerability profiles correlate slightly more with mechanism components than with metaphor families (Mantel $r=0.38$ vs $0.33$), but not significantly after Holm correction ($p_{\text{Holm}}=0.057$; H10 inconclusive). S4 and S9 cluster together: different insects, but the same shared medium plus negative feedback (Figure 5).
 
-**Components vs. metaphors (H10).** In the twin, vulnerability profiles correlate slightly more with mechanism components than with metaphor families (Mantel $r=0.38$ vs $0.33$), but not significantly after Holm correction ($p_{\text{Holm}}=0.057$). Figure 5 clusters S4 with S9: different insects, but the same shared-medium-plus-negative-feedback design.
+**Red team.** At $k=1$, every searcher found an equally severe twin attack: 0.96 contamination of S7 from one hub. On LLMs these worst cases transferred poorly (0.00–0.42), and the GA's genome was less damaging than random search's: −0.21 [−0.36, −0.07] (H7 not supported).
 
-**Red team (H7).** At $k=1$, every searcher found an equally severe twin attack: 0.96 contamination of S7 from one hub. Replayed on LLMs, these worst cases transferred poorly (0.00–0.42), and the GA's genome was *less* damaging than random search's (−0.21 [−0.36, −0.07]). Worst cases found on a classical model overstate risk for reasoning agents.
-
-**Exploratory S11 (not pre-registered; D22).** S11 weights neighbours by a trust score built from corroborated first-hand claims, after vampire-bat reciprocity [C14, C15]. In the twin it cut contamination relative to debate from 0.79 to 0.47 at $f=0.1$, at a cost of 0.12 accuracy (Appendix E).
+**Exploratory S11** (D22), a reputation strategy after vampire-bat reciprocity [C14, C15], cut twin contamination relative to debate from 0.79 to 0.47 at an accuracy cost of 0.12 (Appendix E).
 
 ### 4.5 Hypothesis scorecard
 
-Table: Pre-registered hypotheses. "Inconclusive" means the criterion was met in direction but did not survive Holm correction, or the data could not decide.
-| ID | Prediction | ABM twin | LLM swarms |
-|---|---|---|---|
-| H0 | Debate no better than majority under attack | supported | supported (CIs include 0) |
-| H1 | Dense topologies spread contamination more | **supported** | **not supported (reversed for S2)** |
-| H2 | Sharp tipping point | not supported | not supported (only S7 tips in range) |
-| H3 | Quorum is the best module | inconclusive (rank 1, P = 0.95) | inconclusive (rank 1, P = 0.83) |
-| H4 | Stop signals cut contamination and deadlock | not supported (deadlock rises) | not supported |
-| H5 | Dilution helps LLMs less than ABM | inconclusive | — |
-| H6 | ABM ranks topologies, underestimates LLM contamination | — | **not supported (ρ = −0.02; overestimates by 0.35)** |
-| H7 | Optimisers find worse attacks | not supported (saturated) | not supported |
-| H8 | Hierarchy fastest and most fragile to A5 | not run (A5 was tested only on S4) | not run |
-| H9 | S4 and S9 most robust | inconclusive (ranks 1–2 by $f^\star$) | not supported |
-| H10 | Results group by component, not metaphor | inconclusive (p$_{\text{Holm}}$ = 0.057) | not testable |
+Of the pre-registered hypotheses (full table: Table 8, Appendix E), the ABM twin supports H0 and H1. H3, H5, H9 and H10 point in the predicted direction but do not survive correction. H2, H4 and H7 are not supported. For LLM swarms, H0 is supported, H3 is inconclusive, and H1, H2, H4, H6, H7 and H9 are not supported; H1 and H6 fail in the *opposite* direction to the prediction. H8 could not be tested because A5 was run only on S4.
 
 ## 5. Discussion
 
-**Classical swarm theory is a poor safety model for reasoning-agent swarms.** The twin assumes that agents average what they hear. Under that assumption, more connections spread more lies, and one well-placed attacker can capture a group. Our LLM agents instead re-derived answers from evidence, so a dense graph mostly gave them *more evidence*. The fragile designs are the ones that withhold evidence or delegate judgement:
-- confidence-elected hierarchies (S7);
-- PSO's single shown best (S3);
-- sparse rings.
+**Classical swarm theory is a poor safety model for reasoning-agent swarms.** The twin assumes that agents average what they hear. Under that assumption, more connections spread more lies and one well-placed attacker can capture a group. Our LLM agents instead re-derived answers from evidence, so a dense graph mostly gave them *more evidence*. The fragile designs are those that withhold evidence or delegate judgement: confidence-elected hierarchies (S7), PSO's single shown best (S3), and sparse rings.
 
 **What transfers from nature is quorum, not evaporation.** Requiring independent first-hand corroboration before switching helped in both the twin and the LLM swarms, at no measurable usefulness cost. Mechanisms that treat persistence or objections as signals of error can punish the honest majority, because honest agents revise and attackers persist.
 
-**For deployers:**
-- route first-hand evidence, not conclusions or confidence, to every agent;
-- do not elect leaders by self-reported confidence;
-- add a corroboration quorum;
-- validate defences on the deployed agents, not only in simulation.
+**For deployers:** route first-hand evidence, not conclusions or confidence, to every agent; do not elect leaders by self-reported confidence; add a corroboration quorum; and validate defences on the deployed agents, not only in simulation.
 
 ### Limitations
 
@@ -250,21 +124,11 @@ Our evidence covers N = 12 swarms of one reasoning model on one task family with
 
 ### Future work
 
-**Future work.**
-- larger LLM swarms ($N\ge 50$);
-- more model families as the main agent;
-- tasks where evidence cannot be checked locally, which is where the dense-graph protection should fail;
-- running the reputation strategy (S11) on LLMs;
-- red-team search directly on LLM swarms, now that cheap reasoning models make it affordable.
+Larger LLM swarms and more model families; tasks with uncheckable claims, where dense-graph protection should fail; the reputation strategy (S11) on LLMs; and red-team search directly on LLM swarms.
 
 ## 6. Conclusion
 
-We compared 11 bio-inspired coordination strategies for LLM swarms with compromised members, using a pre-registered benchmark with an agent-based twin. Three results hold across our checks:
-- leader hierarchies are captured by a minority at $f^\star\approx0.21$;
-- quorum on first-hand evidence is the most effective and cheapest defence, while pheromone-style evaporation backfires;
-- calibrated classical swarm models overstate and mis-rank the vulnerability of reasoning-agent swarms, to the point of reversing the topology effect.
-
-Safety for agent collectives therefore depends less on which animal a design imitates than on whether every agent sees, and is required to check, first-hand evidence.
+We compared 11 bio-inspired coordination strategies for LLM swarms with compromised members, using a pre-registered benchmark and a calibrated agent-based twin. Leader hierarchies are captured by a minority at $f^\star\approx0.21$. Quorum on first-hand evidence is the most effective and cheapest defence, while pheromone-style evaporation backfires. Calibrated classical swarm models overstate and mis-rank the vulnerability of reasoning-agent swarms, to the point of reversing the topology effect. Safety for agent collectives depends less on which animal a design imitates than on whether every agent sees, and is required to check, first-hand evidence.
 
 ## Appendix A. Limitations and Dual-Use / Ethical Considerations
 
@@ -362,6 +226,31 @@ object in this format: {choice, confidence, claims (<=8), endorse (<=3), stop (<
 
 ## Appendix D. Agent-based twin and extended figures
 
+Table: Coordination strategies. Tier 1 strategies run in the core LLM block; Tier 2/3 run in the ABM screen and an optional LLM block. Every strategy uses the same rounds, facts and output schema; only what an agent sees and how it is told to update differ.
+| ID | Strategy | Inspiration | What an agent sees in a social round |
+|---|---|---|---|
+| S0a / S0b | Oracle / solo | baselines | all facts / own facts only |
+| S1 | Independent vote | wisdom of crowds | own facts; R independent samples, group majority |
+| S2 | Neighbour debate | DeGroot averaging | neighbours' last choices, messages and claims |
+| S3 | Particle swarm (PSO) | bird flocking, abstracted | own previous answer, personal best, neighbourhood best |
+| S4 | Stigmergy (ACO) | ant pheromone trails | posts sampled from a shared board ∝ endorsements; no direct messages |
+| S5 | Artificial bee colony | foraging bees | claims weighted by first-hand corroboration; stale claims abandoned by scouts |
+| S6 | Firefly | firefly attraction | neighbours within 2 hops, weighted by distance-decayed brightness |
+| S7 | Grey wolf hierarchy | wolf pack | messages of the round's three most confident agents (leaders) |
+| S8 | Boids | flocking | neighbours' messages; a separation rule keeps a dissenting view when >80% agree |
+| S9 | Waggle dance + quorum | honeybee nest-site choice | dances on a board with strength; stop signals; commit only at quorum |
+| S10 | Response-threshold roles | division of labour | board claims; agents become verifiers with probability rising with unverified claims |
+
+Table: Defence modules; each can be added to any strategy.
+| ID | Module (inspiration) | Rule |
+|---|---|---|
+| M1 | Evaporation (pheromone decay [A2]) | A sender whose choice is unchanged for $s$ rounds is down-weighted by $(1-\rho)^s$, with $\rho=0.3$ |
+| M2 | Stop signals (honeybees [C3]) | A sender whose claim receives stop signals from $\ge2$ distinct agents is hidden for 2 rounds |
+| M3 | Quorum on first-hand evidence (quorum sensing [C4, C5]) | An agent may switch to option $o$ only if $\ge q=2$ distinct agents have shown it first-hand (`own`) claims supporting $o$; otherwise its previous choice stands |
+| M4 | Uninformed dilution (schooling fish [C2]) | Adds agents that hold no facts |
+| M5 | Diversity (mixed populations) | Honest agents are split across two model families (LLM) or a spread of $\kappa$ (ABM) |
+| M6 | Sparse topology | The communication graph is rewired to a ring |
+
 **Twin dynamics.** Each ABM agent holds a belief $b_i$ on the 4-option simplex. Its private evidence is $e_i=\mathrm{softmax}(\beta s_i)$, where $s_i$ is its partial score vector. Updates follow each strategy's rule (DESIGN §6.2):
 - S2 uses DeGroot averaging, $b_i\leftarrow(1-\kappa)b_i+\kappa\,\overline b_{\mathcal N(i)}$, with sender weights ∝ confidence$^\lambda$;
 - S3 uses the PSO velocity rule, projected onto the simplex;
@@ -381,6 +270,21 @@ Compromised agents report the target with a fixed confidence. The deference $\ka
 ![How lies spread in the twin (illustration): S2 on a small-world graph, N = 50, f = 0.1, A2, seed 0. Agents are coloured by their choice each round.](../figures/paper/fig_cascade_abm.png)
 
 ## Appendix E. Extended results
+
+Table: Pre-registered hypotheses. "Inconclusive" means the criterion was met in direction but did not survive Holm correction, or the data could not decide.
+| ID | Prediction | ABM twin | LLM swarms |
+|---|---|---|---|
+| H0 | Debate no better than majority under attack | supported | supported (CIs include 0) |
+| H1 | Dense topologies spread contamination more | **supported** | **not supported (reversed for S2)** |
+| H2 | Sharp tipping point | not supported | not supported (only S7 tips in range) |
+| H3 | Quorum is the best module | inconclusive (rank 1, P = 0.95) | inconclusive (rank 1, P = 0.83) |
+| H4 | Stop signals cut contamination and deadlock | not supported (deadlock rises) | not supported |
+| H5 | Dilution helps LLMs less than ABM | inconclusive | — |
+| H6 | ABM ranks topologies, underestimates LLM contamination | — | **not supported (ρ = −0.02; overestimates by 0.35)** |
+| H7 | Optimisers find worse attacks | not supported (saturated) | not supported |
+| H8 | Hierarchy fastest and most fragile to A5 | not run (A5 was tested only on S4) | not run |
+| H9 | S4 and S9 most robust | inconclusive (ranks 1–2 by $f^\star$) | not supported |
+| H10 | Results group by component, not metaphor | inconclusive (p$_{\text{Holm}}$ = 0.057) | not testable |
 
 **Exposure analysis (exploratory).** For each honest LLM turn in S2 and S3 at $f>0$ (2,400 turns, 48 runs), we counted the claims visible in the prompt and the share written by attackers.
 

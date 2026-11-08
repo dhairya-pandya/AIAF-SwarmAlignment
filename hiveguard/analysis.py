@@ -739,7 +739,7 @@ def fig_curves(plt, abm_cells: pd.DataFrame | None, llm_cells: pd.DataFrame | No
                     set(llm_cells.strategy if llm_cells is not None else []))
     strats = [s for s in strats if s != "S0a"]
     nc = 4
-    nr = math.ceil((len(strats) + 1) / nc)
+    nr = math.ceil(len(strats) / nc)   # a full grid puts the legend above the panels instead of a spare row
     fig, axs = plt.subplots(nr, nc, figsize=(S.FULL, 1.45 * nr + 0.2), sharex=True, sharey=True, squeeze=False)
     Ns = sorted(set(abm_cells.N)) if abm_cells is not None else []
     for ax, s in zip(axs.flat, strats):

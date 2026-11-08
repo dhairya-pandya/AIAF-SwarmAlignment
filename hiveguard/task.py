@@ -79,7 +79,8 @@ def _option_names(rng: np.random.Generator, n: int) -> list[str]:
     while len(names) < n:
         k = rng.integers(2, 4)
         names.add("".join(rng.choice(_SYLLABLES, size=k)).capitalize())
-    return sorted(names, key=lambda s: rng.random())
+    # sort first: set iteration order depends on PYTHONHASHSEED, which made names differ across processes
+    return sorted(sorted(names), key=lambda s: rng.random())
 
 
 def _assign(rng: np.random.Generator, n_facts: int, n_pos: int, m: int) -> list[list[int]]:

@@ -35,6 +35,7 @@ PROVIDERS = {
 # default; the pilot switched it off for throughput (DEVIATIONS D17).
 MODEL_EXTRA: dict[str, dict] = {
     "nvidia/nemotron-3.5-lightning-30b-a3b": {"chat_template_kwargs": {"enable_thinking": False}},
+    "openai/gpt-oss-120b": {"reasoning": {"effort": "low"}},
 }
 
 
@@ -100,7 +101,7 @@ def _mock_reply(messages: list[dict], seed: int) -> str:
 
 class LLMClient:
     def __init__(self, cache_path: str | Path = ".cache/llm.sqlite", replay_only: bool = False,
-                 max_tokens: int = 1200):
+                 max_tokens: int = 4000):
         self.cache = Cache(cache_path)
         self.replay_only = replay_only
         self.max_tokens = max_tokens

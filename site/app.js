@@ -3,7 +3,7 @@
 "use strict";
 (function () {
   const SVGNS = "http://www.w3.org/2000/svg";
-  const SOURCES = ["ABM", "LLM", "pilot"];
+  const SOURCES = ["LLM", "ABM", "pilot"];   // first available is the default view
   const SOURCE_NAMES = { ABM: "Agent-based model (ABM)", LLM: "LLM swarms", pilot: "LLM pilot" };
   const DEFAULTS = { module: "none", attack: "A2", topology: "full", N: 12, placement: "random" };
   const SEARCHERS = { random: "Random", hub: "Hub (betweenness)", ga: "Genetic algorithm", bpso: "Binary PSO",
@@ -17,7 +17,7 @@
   const VERDICT_TEXT = { "not run": "not run yet" };
 
   const D = { manifest: null, results: null, labels: null, cells: null, replays: [] };
-  const S = { src: null, keys: {}, f: null, modSrc: "ABM", modScope: "overall", hypSrc: "all" };
+  const S = { src: null, keys: {}, f: null, modSrc: "LLM", modScope: "overall", hypSrc: "all" };
 
   // ------------------------------------------------------------ helpers
   function el(tag, attrs, ...kids) {

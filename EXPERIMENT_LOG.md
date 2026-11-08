@@ -80,3 +80,11 @@ This is a lab notebook kept in time order (IST). It records what was run, what c
   - **M5, three model families:** S7 con 0.50 vs 0.61 single-model; S4 con 0.24 vs 0.17. M5 cost about $2 because the other models are pricier.
   - **Attacks on S4, f=1/12:** A1 0.23, A2 0.21, A3 0.18, A4 0.20, A5 0.11. All are close to S4's f=0 floor of about 0.12–0.17, so stigmergy is insensitive to attack type.
   - Spend after attacks: $6.79. Confirm block started.
+- **04:21 All Stage B blocks done.**
+  - Final spend: $8.14 of $10.
+  - Confirm block:
+    - The k=1 red-team genomes saturate in the ABM: every searcher reached con 0.964 on S7/scale-free with a single attacker at node 9.
+    - Replayed on LLMs, they gave S7 con 0.00–0.42 depending on attack type, and S4 0.15–0.18.
+  - Tier-2 (S5, S6, S8; 3 seeds) done.
+- **04:25** S11 merged (D22). Stage A + S11 combined into `results/stageA_with_s11.csv`; S11 is excluded from confirmatory tests by code.
+  - Final analysis launched with pre-registered resampling (bootstrap 2000 per cell, 10k for hypotheses, 9999 Mantel permutations). Output: `results/results.json`, `figures/`.

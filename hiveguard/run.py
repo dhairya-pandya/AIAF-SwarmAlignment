@@ -74,6 +74,7 @@ def main(argv=None) -> None:
         p.add_argument("--cache", default=".cache/llm.sqlite")
         p.add_argument("--seeds", type=int, default=3)
         p.add_argument("--workers", type=int, default=8)
+        p.add_argument("--parallel-runs", type=int, default=1, help="runs executed concurrently")
 
     p = sub.add_parser("calibrate", help="fit kappa, lambda to pilot runs and freeze them")
     p.add_argument("--pilot", default="results/pilot.csv")

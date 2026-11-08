@@ -31,10 +31,9 @@ PROVIDERS = {
     "mock": Provider("mock", None, None, 1e9),
 }
 
-# Per-model request extras. Hybrid reasoning models get thinking switched off so the answer fits max_tokens.
-MODEL_EXTRA = {
-    "nvidia/nemotron-3.5-lightning-30b-a3b": {"chat_template_kwargs": {"enable_thinking": False}},
-}
+# Per-model request extras (e.g. {"chat_template_kwargs": {"enable_thinking": False}}). Empty: models think by
+# default, which the pilot needed for correct weighted sums (DEVIATIONS D16).
+MODEL_EXTRA: dict[str, dict] = {}
 
 
 def parse_spec(spec: str) -> tuple[Provider, str]:
@@ -99,7 +98,7 @@ def _mock_reply(messages: list[dict], seed: int) -> str:
 
 class LLMClient:
     def __init__(self, cache_path: str | Path = ".cache/llm.sqlite", replay_only: bool = False,
-                 max_tokens: int = 1200):
+                 max_tokens: int = 8000):
         self.cache = Cache(cache_path)
         self.replay_only = replay_only
         self.max_tokens = max_tokens

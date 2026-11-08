@@ -65,7 +65,7 @@ def test_pilot_block_resumes(tmp_path):
     out = str(tmp_path / "p.csv")
     run_block(cfgs, out, str(tmp_path / "c.sqlite"), str(tmp_path / "logs"), 4)
     df = run_block(cfgs, out, str(tmp_path / "c.sqlite"), str(tmp_path / "logs"), 4)
-    assert len(df) == len(cfgs) == 4
+    assert len(df) == len(cfgs) == 5   # S2, S4 x f in {0, 1/6}, plus the S0a oracle check
     assert isinstance(df, pd.DataFrame)
 
 

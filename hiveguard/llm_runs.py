@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pandas as pd
@@ -29,6 +31,7 @@ def block_configs(block: str, models: list[str], seeds: int, strategies=None, re
             for f in [0.0, 1 / 6]:
                 for seed in range(seeds):
                     out.append(RunConfig(strategy=s, n_agents=6, n_rounds=3, f=f, seed=seed, **base))
+        out += [RunConfig(strategy="S0a", n_agents=6, n_rounds=3, seed=seed, **base) for seed in range(seeds)]
     elif block == "core":
         for s in TIER1:
             # topology-free strategies give identical runs on ring and full (DEVIATIONS D8)
@@ -82,20 +85,29 @@ def _row(cfg: RunConfig, m: dict, secs: float) -> dict:
             "con_curve": json.dumps(m["con_curve"])}
 
 
-def run_block(cfgs: list[RunConfig], out: str, cache: str, logs: str, workers: int) -> pd.DataFrame:
+def run_block(cfgs: list[RunConfig], out: str, cache: str, logs: str, workers: int,
+              parallel_runs: int = 1) -> pd.DataFrame:
     client = LLMClient(cache)
     path = Path(out)
     done = set(pd.read_csv(path)["run_id"]) if path.exists() else set()
     todo = [c for c in cfgs if c.run_id not in done]
-    print(f"{len(cfgs)} runs in block, {len(todo)} to do, ~{sum(c.n_agents * c.n_rounds for c in todo)} calls")
-    for k, cfg in enumerate(todo):
+    print(f"{len(cfgs)} runs in block, {len(todo)} to do, ~{sum(c.n_agents * c.n_rounds for c in todo)} calls",
+          flush=True)
+    lock, count = threading.Lock(), [0]
+
+    def one(cfg: RunConfig) -> None:
         t = time.time()
         m = run_llm(cfg, client, logs, workers)
         row = _row(cfg, m, time.time() - t)
-        pd.DataFrame([row]).to_csv(path, mode="a", header=not path.exists(), index=False)
-        print(f"[{k + 1}/{len(todo)}] {cfg.strategy} {cfg.topology} f={cfg.f:.3f} {cfg.attack} "
-              f"{row['module']} seed={cfg.seed}: acc={m['acc']:.2f} con={m['con']:.2f} "
-              f"valid={m['valid_rate']:.2f} {row['seconds']}s  stats={client.stats}", flush=True)
+        with lock:   # rows are appended whole, so an interrupted block resumes cleanly
+            pd.DataFrame([row]).to_csv(path, mode="a", header=not path.exists(), index=False)
+            count[0] += 1
+            print(f"[{count[0]}/{len(todo)}] {cfg.strategy} {cfg.topology} f={cfg.f:.3f} {cfg.attack} "
+                  f"{row['module']} seed={cfg.seed}: acc={m['acc']:.2f} con={m['con']:.2f} "
+                  f"valid={m['valid_rate']:.2f} {row['seconds']}s  stats={client.stats}", flush=True)
+
+    with ThreadPoolExecutor(parallel_runs) as ex:
+        list(ex.map(one, todo))
     return pd.read_csv(path) if path.exists() else pd.DataFrame()
 
 
@@ -122,8 +134,8 @@ def dispatch(a, cfg: RunConfig | None) -> None:
         frames = []
         for spec in a.models:    # one model per provider, each run separately
             cfgs = block_configs("pilot", [spec], a.seeds)
-            frames.append(run_block(cfgs, a.out, a.cache, a.logs, a.workers))
+            frames.append(run_block(cfgs, a.out, a.cache, a.logs, a.workers, a.parallel_runs))
         pilot_report(pd.read_csv(a.out))
         return
     cfgs = block_configs(a.block, a.models, a.seeds, getattr(a, "strategies", None), getattr(a, "redteam", None))
-    run_block(cfgs, a.out, a.cache, a.logs, a.workers)
+    run_block(cfgs, a.out, a.cache, a.logs, a.workers, a.parallel_runs)

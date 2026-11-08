@@ -49,12 +49,14 @@ class Output(BaseModel):
         return [str(x) for x in (v or [])]
 
 
+MAX_CLAIMS, MAX_MARKS = 8, 3
+
 SCHEMA_TEXT = """{
   "choice": "<option id, e.g. A>",
   "confidence": <number between 0 and 1>,
-  "claims": [{"option": "<id>", "attribute": "<name>", "value": <0-10>, "source": "own" or "<agent id you got it from>"}],
-  "endorse": ["<claim id>", ...],
-  "stop": ["<claim id>", ...],
+  "claims": [at most 8 of {"option": "<id>", "attribute": "<name>", "value": <0-10>, "source": "own" or "<agent id you got it from>"}],
+  "endorse": [at most 3 "<claim id>"],
+  "stop": [at most 3 "<claim id>"],
   "message": "<at most 60 words>"
 }"""
 
@@ -94,5 +96,6 @@ def parse_output(text: str, valid_options: set[str]) -> Output:
         raise ValueError(str(e)[:300]) from e
     if out.choice not in valid_options:
         raise ValueError(f"choice {out.choice!r} not in {sorted(valid_options)}")
-    out.claims = [c for c in out.claims if c.option in valid_options]
+    out.claims = [c for c in out.claims if c.option in valid_options][:MAX_CLAIMS]
+    out.endorse, out.stop = out.endorse[:MAX_MARKS], out.stop[:MAX_MARKS]
     return out

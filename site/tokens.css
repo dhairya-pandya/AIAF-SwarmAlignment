@@ -1,0 +1,73 @@
+/* Swarm Immunity design tokens.
+   Black-and-white chrome on warm-black surfaces, hard 2px corners, stepped motion.
+   Colour is spent only on state (contamination, accuracy, safe, warning) and inside the mosaic art.
+   Fonts: Instrument Sans (display + body) and Geist Mono (labels, numbers). Both SIL OFL 1.1, see fonts/. */
+
+@font-face { font-family: "Instrument Sans"; src: url("fonts/InstrumentSans%5Bwdth%2Cwght%5D.ttf") format("truetype"); font-weight: 400 700; font-stretch: 75% 100%; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url("fonts/GeistMono%5Bwght%5D.ttf") format("truetype"); font-weight: 100 900; font-display: swap; }
+
+:root {
+  /* surfaces: frame darkest, panel above it, cards lifted above the panel */
+  --si-surface: #0b0908;
+  --si-sunken: #060504;
+  --si-card: #12100e;
+  --si-raised: #1a1715;
+  --si-band: #171412;
+  --si-hover: #1e1a17;
+  --si-active: #28231f;
+
+  /* ink */
+  --si-ink: #f2f0ed;
+  --si-muted: #bab4ad;
+  --si-subtle: #958e87;
+  --si-field: #6f6862;
+
+  /* hairlines */
+  --si-rule: #ffffff21;
+  --si-rule-row: #ffffff12;
+  --si-rule-strong: #ffffff38;
+
+  /* mosaic red ramp, darkest to brightest, then bone and paper */
+  --si-red-1: #33100c;
+  --si-red-2: #5c130e;
+  --si-red-3: #8f150f;
+  --si-red-4: #c4170f;
+  --si-vermilion: #e8361c;
+  --si-bone: #d6b48c;
+  --si-paper: #f2e9da;
+  --si-tex: #2b1411;
+
+  /* state hues (one meaning each) and their dim tiles */
+  --si-lime: #a6dd62;   --si-lime-dim: #3a5220;     /* safe, honest, ok */
+  --si-sky: #6fb7ff;    --si-sky-dim: #213d5c;      /* accuracy, correct */
+  --si-amber: #ffc95c;  --si-amber-dim: #5a4319;    /* warning, exploratory */
+  --si-coral: #ff8a6b;  --si-coral-dim: #5a2e24;
+  --si-teal: #4fd1b8;   --si-teal-dim: #1c4a42;
+  --si-violet: #b19bff; --si-violet-dim: #3b3060;
+  --si-rose: #ff86b4;   --si-rose-dim: #5a2640;
+  --si-off: #1c1916;    /* unlit tile */
+  --si-frame: #3b3530;
+  --si-frame-dim: #27231f;
+
+  /* semantic aliases */
+  --si-attack: var(--si-vermilion);   /* contamination, attackers' target, compromised */
+  --si-correct: var(--si-sky);        /* accuracy, correct choice */
+  --si-ok: var(--si-lime);            /* safe, supported */
+  --si-warn: var(--si-amber);         /* warning, inconclusive */
+  --si-chart-grid: #2a2522;
+
+  /* type */
+  --si-font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --si-font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --si-display-tracking: -0.045em;
+  --si-h2-tracking: -0.035em;
+  --si-label-tracking: 0.06em;
+
+  /* shape and motion */
+  --si-radius: 2px;
+  --si-tile-gap: 2px;
+  --si-step-fast: 120ms;
+  --si-step: 240ms;
+  --si-grain-alpha: 0.28;
+  color-scheme: dark;
+}

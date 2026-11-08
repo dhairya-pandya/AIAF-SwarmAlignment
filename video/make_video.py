@@ -108,8 +108,9 @@ class Canvas:
         return M.wrap(s, self.f(size, weight, kind), maxw * self.k, track)
 
     def rect(self, x0, y0, x1, y1, color):
-        self.dr.rectangle([x0 * self.k, y0 * self.k, x1 * self.k - 1, y1 * self.k - 1],
-                          fill=M.rgb(color) if isinstance(color, str) else color)
+        X0, Y0 = x0 * self.k, y0 * self.k
+        X1, Y1 = max(X0, x1 * self.k - 1), max(Y0, y1 * self.k - 1)     # at least 1 px at small scales
+        self.dr.rectangle([X0, Y0, X1, Y1], fill=M.rgb(color) if isinstance(color, str) else color)
 
     def sprite(self, name, x, y, cell, pal="red"):
         M.sprite(self.dr, name, x * self.k, y * self.k, cell * self.k, pal, gap=max(1, round(2 * self.k)))
@@ -117,9 +118,9 @@ class Canvas:
     def paste(self, img: Image.Image, x, y):
         self.im.paste(img, (int(x * self.k), int(y * self.k)), img if img.mode == "RGBA" else None)
 
-    def save(self, path: Path) -> None:
+    def save(self, path: Path, grain: bool = True) -> None:
         im = self.im
-        if im.getextrema()[3][0] == 255:     # opaque frame: add the plate grain
+        if grain and im.getextrema()[3][0] == 255:     # opaque frame: add the plate grain
             im = M.grain(im, 0.03)
         im.save(path)
 
@@ -263,7 +264,7 @@ def render_image(scene: dict, w: int, h: int, out: Path, missing: bool = False, 
         c.rect(cx - cw_ / 2, cy - ch_ / 2, cx - cw_ / 2 + 6, cy - ch_ / 2 + 6, ACCENT)   # hard-corner card tick
         res = img.resize((max(1, int(iw * c.k)), max(1, int(ih * c.k))), Image.LANCZOS)
         c.im.paste(res, (int((cx - iw / 2) * c.k), int((cy - ih / 2) * c.k)))
-    c.save(out)
+    c.save(out, grain=layer == "all")     # zoom layers stay flat so figure and chrome bands match exactly
     return (left + right) / 2 / BASE_W, (top + bottom) / 2 / BASE_H
 
 

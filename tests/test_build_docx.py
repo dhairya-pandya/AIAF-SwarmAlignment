@@ -25,7 +25,7 @@ EXPECTED_H2 = ["1. Introduction", "2. Related Work", "3. Methods", "4. Results",
                "Appendix", "LLM Usage Statement"]
 GUIDANCE = ["How to use this template", "What problem are you addressing", "Recommended length",
             "PROJECT TITLE", "Author name", "Summarize your project", "[Reference 1]",
-            "Briefly summarize your main findings", "If you used LLM assistance", "Claude", "Anthropic"]
+            "Briefly summarize your main findings", "If you used LLM assistance"]
 
 SYNTH_MD = r"""# A Tiny Test Paper
 

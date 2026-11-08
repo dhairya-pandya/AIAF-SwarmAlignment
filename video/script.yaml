@@ -13,7 +13,7 @@ voice: Samantha        # any voice from `say -v '?'`
 rate: 180              # words per minute
 fps: 30
 padding: 0.6           # seconds added to each scene's narration length
-crossfade: 0.3         # seconds; --no-xfade for hard cuts
+crossfade: 0.4         # seconds of stepped tile wipe between scenes; --no-xfade for hard cuts
 output: swarm_immunity.mp4
 meta_title: "Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI"
 meta_artist: Dhairya Pandya
@@ -94,6 +94,61 @@ scenes:
       The strategies range from voting and free debate to particle swarms, ant-colony stigmergy, bee
       colonies, a honeybee quorum, a wolf-pack hierarchy, fireflies and boids. Each is tagged with eight mechanism
       components, so we can test whether vulnerability groups by mechanism, or by animal.
+
+  # ---------------- HOW EACH SWARM WORKS (explainer clips from video/animations.py; uncomment to use)
+  # Each clip is 8 s, 1920x1080, no audio; `python video/animations.py --seconds 6` renders 6 s cuts.
+  # Six clips add ~40-50 s with their narration, so keep the total under 5 min (drop or trim a bullets
+  # scene if needed). Clips with longer narration hold their last frame. Narration below is a draft.
+  # Available: ants, bees, wolves, birds, fireflies, debate, pso, bats (bats = S11, exploratory).
+  # - id: howitworks
+  #   type: bullets
+  #   kicker: "How each swarm works"
+  #   heading: "Same goal, different rules for pooling what each agent knows"
+  #   bullets:
+  #     - "Each clip: lime/blue tiles are honest agents, red-cored tiles are compromised"
+  #     - "Dark red = an honest agent that has been misled"
+  #   narration: >
+  #     Here is how six of these swarms coordinate, and where a compromised agent gets its foothold.
+  # - id: how_ants
+  #   type: clip
+  #   path: video/anim/ants.mp4
+  #   heading: "Ants: trails on a shared board"
+  #   narration: >
+  #     Ants never talk directly. They post to a shared board; strong trails get reinforced, and every
+  #     trail slowly evaporates unless someone renews it.
+  # - id: how_bees
+  #   type: clip
+  #   path: video/anim/bees.mp4
+  #   heading: "Honeybees: dances, stop signals, quorum"
+  #   narration: >
+  #     Honeybee scouts dance for a site, others follow strong dances, stop signals knock bad dances
+  #     down, and the swarm commits only at a quorum.
+  # - id: how_wolves
+  #   type: clip
+  #   path: video/anim/wolves.mp4
+  #   heading: "Wolves: follow the leaders"
+  #   narration: >
+  #     In the wolf pack, the three most confident agents lead and everyone follows. An attacker that
+  #     simply claims maximum confidence takes the lead.
+  # - id: how_birds
+  #   type: clip
+  #   path: video/anim/birds.mp4
+  #   heading: "Birds: align with your neighbours"
+  #   narration: >
+  #     Boids align with their neighbours, while a few keep a dissenting view when the crowd gets too uniform.
+  # - id: how_fireflies
+  #   type: clip
+  #   path: video/anim/fireflies.mp4
+  #   heading: "Fireflies: drift toward the brightest"
+  #   narration: >
+  #     Fireflies drift toward brighter, more confident neighbours, and that light fades with distance.
+  # - id: how_debate
+  #   type: clip
+  #   path: video/anim/debate.mp4
+  #   heading: "Debate: average your neighbours"
+  #   narration: >
+  #     In free debate each agent averages its neighbours. Attackers who never move drag the average toward them.
+  # (also: video/anim/pso.mp4 particle swarm, video/anim/bats.mp4 vampire-bat trust, exploratory)
 
   - id: defences
     type: bullets

@@ -64,3 +64,10 @@ This is a lab notebook kept in time order (IST). It records what was run, what c
     - The grey-wolf hierarchy (S7) is captured (0.61).
     - Stigmergy (S4) is the safest but least useful (acc at f=0 is 0.43, vs 0.69 for S2).
   - P3 modules block started on S4 and S7.
+- **03:20 Exploratory mechanism analysis** (`analysis/exposure.py`, `results/exposure.csv`, not pre-registered). Unit: honest LLM turns in social rounds, core block, f>0.
+  - **S2 debate.** Agents on the full graph see about 66 claims per turn, against about 12 on the ring. The share of attacker claims is similar (0.11 vs 0.10). Adoption of the target is 0.04 on full vs 0.20 on the ring, and final contamination 0.05 vs 0.27.
+  - **Reading:** the full graph gives each agent near-complete honest evidence, so a reasoning agent can recompute the correct answer. Robustness here comes from evidence completeness, not from dilution.
+  - **Pooled over all turns:** adoption is 0.53 when attacker claims are more than half of what is visible.
+  - **Caveats:**
+    - The cross-strategy correlation of visible claims with contamination is weak (Spearman −0.18, n=7 cells).
+    - The parser does not count S4 board posts or S9 dance claims (different id format), so the claim stays limited to S2.

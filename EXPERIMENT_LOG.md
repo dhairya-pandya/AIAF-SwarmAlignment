@@ -45,3 +45,11 @@ This is a lab notebook kept in time order (IST). It records what was run, what c
 - **02:25 M5 model screen** (oracle S0a, N=3, 12 seeds, reasoning effort low): minimax-m3.1-flash 1.00, nemotron-3-super-120b 1.00, glm-5.3-flash 0.97, qwen3.6-35b-a3b 0.97. Chose gpt-oss-120b + minimax + qwen for M5 (D21).
   - Throughput in the core block is about 230 calls/min, so Stage B was extended to 6 seeds (D20).
   - Remaining blocks are chained in `scripts/stage_b_pipeline.py`.
+- **02:38 P1 done:** calibrated Stage A (`results/stageA.csv`) and red-team search at k=1 and k=2 (`results/redteam_k{1,2}.json`).
+  - Preview analysis, ABM only: `results/results_abm_preview.json`, `figures/abm_preview/`.
+  - H0 supported, H1 supported, H10 supported (Holm p = 0.045).
+  - H3 inconclusive (M3 ranks first, Holm p = 0.096).
+  - H2 and H4 not supported. H7 (ABM half) not supported (p = 0.14).
+  - Shape: S4, S5, S9 and S10 rise gradually with f. S2, S6, S7 and S8 saturate by f ≈ 0.05–0.15.
+- **02:33** P2 core 3-seed block done (84 runs). The pipeline moved on to the 6-seed extension.
+- **02:45** Exploratory S11 (vampire-bat reciprocity / reputation) is being built in an isolated worktree. It is not pre-registered and will be excluded from confirmatory tests (D22, pending).

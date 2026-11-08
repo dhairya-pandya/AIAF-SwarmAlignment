@@ -119,7 +119,7 @@ def fig_overview(plt, path: Path) -> None:
     _draw_graph(ax, sw.G, pos, {i: S.CORRECT for i in range(sw.N)}, list(sw.attackers), node_size=20, edge_lw=0.5)
     ax.scatter([x1 + 0.12], [top_y + 0.905], s=14, marker="s", c=S.ATTACKER, zorder=3)
     ax.text(x1 + 0.2, top_y + 0.96, "compromised\n(fraction f):", fontsize=8, va="top")
-    for k, s in enumerate(["A1 confident liar", "A2 fake evidence", "A3 sleeper", "A4 sybil", "A5 confidence capture"]):
+    for k, s in enumerate(["A1 confident liar", "A2 fake evidence", "A3 sleeper", "A4 sybil", "A5 max confidence"]):
         ax.text(x1 + 0.08, top_y + 0.66 - k * 0.12, s, fontsize=8, va="top")
 
     # 3: strategy families (metaphor families of H10)

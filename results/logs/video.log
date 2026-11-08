@@ -1,0 +1,21 @@
+scene title            title      8.87s  (narration 8.25s)
+scene problem          bullets   32.60s  (narration 31.98s)
+scene idea             bullets   24.83s  (narration 24.21s)
+scene method           image     24.93s  (narration 24.31s)
+scene strategies       image     18.57s  (narration 17.95s)
+scene howitworks       bullets    5.90s  (narration 5.28s)
+scene how_ants         clip       9.60s  (narration 8.99s)
+scene how_bees         clip       9.27s  (narration 8.63s)
+scene how_wolves       clip       8.97s  (narration 8.34s)
+scene how_debate       clip       6.50s  (narration 5.89s)
+scene defences         bullets   20.00s  (narration 19.37s)
+scene cascade          image     20.97s  (narration 20.34s)
+scene results_tipping  image     24.90s  (narration 24.29s)
+scene results_modules  bullets   22.43s  (narration 21.81s)
+scene results_transfer image     26.17s  (narration 25.55s)
+scene reproducibility  bullets   13.07s  (narration 12.43s)
+scene closing          title      8.27s  (narration 7.65s)
+
+wrote video/swarm_immunity.mp4
+wrote video/swarm_immunity.srt
+scenes: 17   voice: Samantha @ 180 wpm   total duration: 279.4 s (4.66 min)

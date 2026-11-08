@@ -1,4 +1,4 @@
-# HiveGuard: Which Swarm Algorithm Makes LLM Swarms Safest? A Safety Benchmark of Bio-Inspired Coordination under Compromised Agents
+# Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI
 
 *Apart × AIAF Swarm Alignment Hackathon, November 6–8, 2026. Primary track: Science of Agent Networks (Track 2). Secondary track: Oversight and Control (Track 4).*
 

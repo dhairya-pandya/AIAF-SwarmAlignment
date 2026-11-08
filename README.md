@@ -1,7 +1,7 @@
-# HiveGuard
+# Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI
 
-**Which swarm algorithm makes LLM swarms safest?** A safety benchmark of bio-inspired coordination
-strategies for LLM agent swarms with compromised agents. Built for the Apart × AIAF Swarm Alignment
+**Which bio-inspired swarm designs resist compromised agents, and which defences are worth their cost?** A safety benchmark of bio-inspired coordination
+strategies for LLM agent swarms with compromised agents. The code package is `hiveguard`. Built for the Apart × AIAF Swarm Alignment
 Hackathon (Nov 6–8, 2026).
 
 - [DESIGN.md](DESIGN.md): pre-registration (hypotheses, metrics, analysis plan). Committed alone in the first commit, before any code.

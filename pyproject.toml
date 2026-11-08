@@ -1,0 +1,31 @@
+[project]
+name = "hiveguard"
+version = "0.1.0"
+description = "Safety benchmark of swarm-intelligence coordination strategies for LLM agent swarms"
+requires-python = ">=3.11"
+dependencies = [
+  "numpy>=1.26",
+  "networkx>=3.2",
+  "pandas>=2.1",
+  "scipy>=1.11",
+  "pydantic>=2.5",
+  "matplotlib>=3.8",
+  "openai>=1.40",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+hiveguard = "hiveguard.run:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["hiveguard"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

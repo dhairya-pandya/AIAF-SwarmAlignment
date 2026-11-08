@@ -1,4 +1,4 @@
-"""CLI: abm / stageA / search / pilot / calibrate / stageB / replay."""
+"""CLI: abm / stageA / search / pilot / calibrate / stageB / replay / analyze."""
 from __future__ import annotations
 
 import argparse
@@ -84,6 +84,20 @@ def main(argv=None) -> None:
     p.add_argument("--logs", default="logs")
     p.add_argument("--cache", default=".cache/llm.sqlite")
 
+    p = sub.add_parser("analyze", help="figures, hypothesis verdicts and results JSON (missing inputs are skipped)")
+    p.add_argument("--stageA", default="results/stageA.csv")
+    p.add_argument("--redteam", default="results/redteam.json")
+    p.add_argument("--llm", nargs="*", default=["results/stageB.csv"], help="Stage B CSV(s)")
+    p.add_argument("--pilot", default="results/pilot.csv")
+    p.add_argument("--params", default="results/abm_params.json")
+    p.add_argument("--out", default="results/results.json")
+    p.add_argument("--figures", default="figures")
+    p.add_argument("--boot", type=int, default=2000, help="bootstrap resamples for per-cell CIs")
+    p.add_argument("--tip-boot", type=int, default=500, help="bootstrap resamples for f* CIs")
+    p.add_argument("--hyp-boot", type=int, default=10_000, help="bootstrap resamples for hypothesis tests")
+    p.add_argument("--perms", type=int, default=9999, help="Mantel permutations (H10)")
+    p.add_argument("--workers", type=int)
+
     a = ap.parse_args(argv)
 
     if a.cmd == "abm":
@@ -108,6 +122,12 @@ def main(argv=None) -> None:
     elif a.cmd == "calibrate":
         from .calibrate import calibrate
         calibrate(a.pilot, a.out)
+    elif a.cmd == "analyze":
+        from .analysis import analyze, summary_table
+        res = analyze(a.stageA, a.redteam, a.llm, a.pilot, a.params, a.out, a.figures, a.boot, a.tip_boot,
+                      a.hyp_boot, a.perms, a.workers)
+        print(summary_table(res))
+        print(f"-> {a.out}, figures in {a.figures}/")
     elif a.cmd == "replay":
         from .env import replay
         ok = replay(a.run_id, a.logs, a.cache)

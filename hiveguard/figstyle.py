@@ -6,7 +6,8 @@ for sizes and the semantic colours every figure reuses, so the same thing has th
 
 - contamination / attackers' target: vermilion; accuracy / correct choice: sky blue;
   safe / ok: lime; warning: amber; compromised agents: ink (near black) squares; other: warm grey;
-- strategies: coloured by metaphor family (the H10 grouping);
+- strategies: coloured by metaphor family (the H10 grouping); exploratory strategies (config.EXPLORATORY,
+  DEVIATIONS D22) carry a dagger in labels;
 - modules, searchers and swarm sizes N: fixed colours, each paired with a fixed marker or line style.
 
 The state hues are the print variants (darker than the screen ones) so they hold contrast on white;
@@ -56,7 +57,7 @@ CON_C, ACC_C = VERMILLION, BLUE          # contamination vs accuracy quantities
 LLM_C = BLACK                            # LLM observations (ABM lines are coloured)
 
 FAMILY_COLOR = {"baseline": GREY, "abstract": TEAL, "insects": AMBER, "wolves": VIOLET,
-                "fireflies": LIME, "birds": ROSE, "bats": "#a0522d"}
+                "fireflies": LIME, "birds": ROSE, "bats": "#a0522d", "mammals": "#a0522d"}
 MODULE_COLOR = {"none": BLACK, "M1": TEAL, "M2": LIME, "M3": AMBER, "M4": VIOLET, "M5": BLUE, "M6": ROSE}
 MODULE_MARKER = {"none": "o", "M1": "v", "M2": "s", "M3": "D", "M4": "^", "M5": "P", "M6": "X"}
 MODULE_NAME = {"M1": "evaporation", "M2": "stop signals", "M3": "quorum", "M4": "dilution",
@@ -73,16 +74,17 @@ STRATEGY_NAME = {
     "S0a": "Oracle", "S0b": "Solo", "S1": "Independent + majority", "S2": "Free debate",
     "S3": "Particle swarm (PSO)", "S4": "Ant-colony stigmergy", "S5": "Artificial bee colony",
     "S6": "Firefly attraction", "S7": "Grey-wolf hierarchy", "S8": "Boids", "S9": "Honeybee nest-site",
-    "S10": "Response threshold"}
+    "S10": "Response threshold", "S11": "Reciprocity / reputation"}
 STRATEGY_SHORT = {
     "S0a": "oracle", "S0b": "solo", "S1": "majority", "S2": "debate", "S3": "PSO", "S4": "ACO",
     "S5": "bee colony", "S6": "firefly", "S7": "grey wolf", "S8": "boids", "S9": "honeybee",
-    "S10": "resp. threshold"}
+    "S10": "resp. threshold", "S11": "reciprocity"}
 INSPIRATION = {
     "S0a": "baseline: all facts", "S0b": "baseline: own facts", "S1": "baseline: voting",
     "S2": "group deliberation", "S3": "flocking, abstracted", "S4": "ant pheromone trails",
     "S5": "honeybee foraging", "S6": "firefly flashing", "S7": "wolf-pack hierarchy",
-    "S8": "bird flocking", "S9": "honeybee nest-site choice", "S10": "insect division of labour"}
+    "S8": "bird flocking", "S9": "honeybee nest-site choice", "S10": "insect division of labour",
+    "S11": "vampire-bat reciprocal food sharing"}
 
 
 def family(s: str) -> str:
@@ -94,8 +96,17 @@ def strategy_color(s: str) -> str:
     return FAMILY_COLOR[family(s)]
 
 
+EXPLORATORY_MARK = "†"
+
+
+def strategy_id(s: str) -> str:
+    """Strategy id with a dagger if it is exploratory (not pre-registered)."""
+    from .config import EXPLORATORY
+    return s + EXPLORATORY_MARK if s in EXPLORATORY else s
+
+
 def strategy_label(s: str) -> str:
-    return f"{s} {STRATEGY_SHORT.get(s, '')}".strip()
+    return f"{strategy_id(s)} {STRATEGY_SHORT.get(s, '')}".strip()
 
 
 def module_label(m: str) -> str:

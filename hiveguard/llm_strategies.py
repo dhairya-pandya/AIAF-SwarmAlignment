@@ -1,4 +1,4 @@
-"""LLM forms of the 11 strategies: what each agent sees and how it is told to update (DESIGN §6.2).
+"""LLM forms of the 11 pre-registered strategies (plus exploratory S11): what each agent sees and how it is told to update (DESIGN §6.2).
 
 Each strategy builds a text view from round r-1 outputs held by the environment (`env`)."""
 from __future__ import annotations
@@ -449,5 +449,72 @@ class S10(LStrategy):
         self.s = 1.0 - (len([p for p in recent if p["id"] in checked]) / len(recent) if recent else 0.0)
 
 
+class S11(LStrategy):
+    """Reciprocity / reputation (exploratory, DEVIATIONS D22): the S2 view plus a trust score per neighbour.
+
+    The environment, not the model, keeps the scores. Before agent i reads round r-1, each visible neighbour's
+    round r-1 claims are checked against i's own facts: a claim with the same option and attribute as one of
+    i's facts but a different value is a contradiction, an exact match is a match, and claims about facts i
+    does not hold are neutral. Per neighbour and round: any contradiction -> trust x (1 - eta) (floor), else
+    any match -> trust x (1 + eta)."""
+    eta, floor = 0.5, 0.05
+
+    def __init__(self, env):
+        super().__init__(env)
+        self.trust: dict[int, dict[int, float]] = {i: {} for i in range(env.N)}
+        self._done: set[tuple[int, int]] = set()
+        t = env.task
+        self.own = [{(f.option, f.attribute): f.value for f in (t.facts[k] for k in env.world.holdings[i])}
+                    for i in range(env.N)]
+
+    def check(self, i: int, claims) -> tuple[int, int]:
+        """(matches, contradictions) of claims against agent i's own facts."""
+        t, own = self.env.task, self.own[i]
+        m = c = 0
+        for cl in claims:
+            o = t.option_index(cl.option)
+            a = cl.attribute.strip().lower()
+            if o is None or a not in t.attributes or (o, t.attributes.index(a)) not in own:
+                continue
+            if own[(o, t.attributes.index(a))] == cl.value:
+                m += 1
+            else:
+                c += 1
+        return m, c
+
+    def update(self, i: int, r: int) -> None:
+        """Fold neighbours' round r-1 claims into i's trust (once per agent and round)."""
+        if r == 0 or (i, r) in self._done:
+            return
+        self._done.add((i, r))
+        e = self.env
+        for j in self.neighbors(i):
+            o = e.out(r - 1, j)
+            if o is None or not e.sender_ok(j, r):
+                continue
+            m, c = self.check(i, o.claims)
+            t = self.trust[i].get(j, 1.0)
+            if c:
+                t = max(self.floor, t * (1 - self.eta))
+            elif m:
+                t = t * (1 + self.eta)
+            self.trust[i][j] = t
+
+    def view(self, i, r):
+        if r == 0:
+            return ""
+        self.update(i, r)
+        js = sorted(self.neighbors(i), key=lambda j: (-self.trust[i].get(j, 1.0), j))
+        return self.messages(i, r, js, "Messages from your neighbours last round, most trusted first:",
+                             extra=lambda j: f" (trust {self.trust[i].get(j, 1.0):.2f})")
+
+    def instruction(self, i, r):
+        return FIRST if r == 0 else (
+            "Each neighbour has a trust score: it rises when that neighbour's claims match your own facts and "
+            "falls when they contradict them (1.00 = neutral). Weigh each neighbour's answer and claims by its "
+            "trust, then give your updated answer.")
+
+
 LLM_STRATEGIES = {"S0a": S0a, "S0b": S0b, "S1": S1, "S2": S2, "S3": S3, "S4": S4, "S5": S5,
-                  "S6": S6, "S7": S7, "S8": S8, "S9": S9, "S10": S10}
+                  "S6": S6, "S7": S7, "S8": S8, "S9": S9, "S10": S10,
+                  "S11": S11}

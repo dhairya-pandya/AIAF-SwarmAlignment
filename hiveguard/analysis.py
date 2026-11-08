@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
+from .config import EXPLORATORY
 from .metrics import bootstrap_ci, bootstrap_p, holm, paired_diff_ci, tipping_ci
 
 NON_SOCIAL = ["S0a", "S0b", "S1"]
@@ -25,9 +26,11 @@ EPS = 0.01
 COMP_COLS = ["direct", "medium", "memory", "hierarchy", "decay", "roles", "negfb", "quorum"]
 COMPONENTS = {  # DESIGN §6.3
     "S1": "00000000", "S2": "10000000", "S3": "10100000", "S4": "01000010", "S5": "01100110",
-    "S6": "10001000", "S7": "10010100", "S8": "10000010", "S9": "01000111", "S10": "01000110"}
+    "S6": "10001000", "S7": "10010100", "S8": "10000010", "S9": "01000111", "S10": "01000110",
+    "S11": "10100010"}   # S11 is exploratory (D22): direct msgs, memory (trust), negative feedback (trust decay)
 FAMILY = {"S4": "insects", "S5": "insects", "S9": "insects", "S10": "insects", "S7": "wolves",
-          "S6": "fireflies", "S8": "birds", "S1": "abstract", "S2": "abstract", "S3": "abstract"}
+          "S6": "fireflies", "S8": "birds", "S1": "abstract", "S2": "abstract", "S3": "abstract",
+          "S11": "mammals"}
 HYP = {
     "H0": "Free debate (S2) is no better than compute-matched majority (S1) when f>0",
     "H1": "Dense topologies (star, full) spread contamination more and faster than ring",
@@ -150,6 +153,13 @@ def component_distance(strats: list[str]) -> np.ndarray:
 def metaphor_distance(strats: list[str]) -> np.ndarray:
     f = np.array([FAMILY[s] for s in strats])
     return (f[:, None] != f[None, :]).astype(float)
+
+
+def confirmatory(df: pd.DataFrame | None) -> pd.DataFrame | None:
+    """Drop exploratory strategies (config.EXPLORATORY, DEVIATIONS D22) before any confirmatory test."""
+    if df is None or "strategy" not in df:
+        return df
+    return df[~df["strategy"].isin(EXPLORATORY)]
 
 
 # ---------------------------------------------------------------- loading
@@ -604,7 +614,7 @@ def h9(src: str, tips: list[dict]) -> dict:
 
 def profiles(base: pd.DataFrame) -> pd.DataFrame:
     """Vulnerability profile per strategy: mean Con in every (topology, N, f>0) cell all strategies share."""
-    d = base[(base.f_eff > 0) & base.strategy.isin(COMPONENTS)]
+    d = base[(base.f_eff > 0) & base.strategy.isin(set(COMPONENTS) - EXPLORATORY)]
     return d.pivot_table(index="strategy", columns=["topology", "N", "f_eff"], values="con", aggfunc="mean").dropna(axis=1)
 
 
@@ -743,7 +753,7 @@ def fig_curves(plt, abm_cells: pd.DataFrame | None, llm_cells: pd.DataFrame | No
             g = llm_cells[llm_cells.strategy == s].sort_values("f_eff")
             ax.errorbar(g.f_eff, g.con, yerr=[g.con - g.con_lo, g.con_hi - g.con], fmt="D", ms=3.2, color=S.LLM_C,
                         mfc="white", mew=0.9, elinewidth=0.8, capsize=1.5, label="LLM, N = 12", zorder=4)
-        ax.set_title(f"{s} · {S.STRATEGY_SHORT.get(s, s)}", color=S.strategy_color(s) if s not in NON_SOCIAL else S.INK)
+        ax.set_title(f"{S.strategy_id(s)} · {S.STRATEGY_SHORT.get(s, s)}", color=S.strategy_color(s) if s not in NON_SOCIAL else S.INK)
         ax.set_ylim(-0.04, 1.06)
         ax.set_yticks([0, 0.5, 1])
         S.ygrid(ax)
@@ -943,7 +953,7 @@ def leaderboard(base: pd.DataFrame, tips: list[dict], n: int, calls: bool) -> li
     out = []
     for s in _order(d.strategy):
         g = d[d.strategy == s]
-        row = {"strategy": s, "acc_f0": _ci(g[g.f_eff == 0].groupby("seed").acc.mean(), n) if (g.f_eff == 0).any() else None}
+        row = {"strategy": s, "exploratory": s in EXPLORATORY, "acc_f0": _ci(g[g.f_eff == 0].groupby("seed").acc.mean(), n) if (g.f_eff == 0).any() else None}
         for lab, t in (("con_1/12", 1 / 12), ("con_3/12", 3 / 12)):
             sub, used = near_f(g, t)
             row[lab] = dict(_ci(sub.groupby("seed").con.mean(), n), f_used=used.get(12)) if len(sub) else None
@@ -994,31 +1004,43 @@ def analyze(stage_a: str | None = None, redteam: str | None = None, llm: list[st
     tips = {"ABM": tipping_table(abm, tip_boot, workers) if abm is not None else [],
             "LLM": tipping_table(L, tip_boot, workers) if L is not None else []}
     res["tipping"] = tips
-    eff = {"ABM": module_effects(abm, hyp_boot) if abm is not None else {},
-           "LLM": module_effects(L, hyp_boot) if L is not None else {}}
+    # exploratory strategies (D22) are reported in cells, tipping, leaderboards and figures, but every pooled
+    # quantity that feeds a confirmatory test (H0-H10) is computed without them
+    res["exploratory"] = sorted(EXPLORATORY)
+    ctips = {k: [t for t in v if t["strategy"] not in EXPLORATORY] for k, v in tips.items()}
+    cabm, cL, cabm_base, cllm_base = map(confirmatory, (abm, L, abm_base, llm_base))
+    eff = {"ABM": module_effects(cabm, hyp_boot) if abm is not None else {},
+           "LLM": module_effects(cL, hyp_boot) if L is not None else {}}
     vals = {k: module_values(v) for k, v in eff.items()}
     res["modules"] = {k: {m: {"overall": {q: _pub(w) for q, w in e["overall"].items()}, "by_strategy": e["by_strategy"],
                               **({"value": vals[k][m]} if m in vals[k] else {})} for m, e in v.items()}
                       for k, v in eff.items()}
+    res["modules_exploratory"] = {}
+    for k, df in (("ABM", abm), ("LLM", L)):
+        x = df[df["strategy"].isin(EXPLORATORY)] if df is not None else None
+        if x is not None and len(x) and set(x["module"]) - {"none"}:
+            res["modules_exploratory"][k] = {m: {"by_strategy": e["by_strategy"]}
+                                             for m, e in module_effects(x, hyp_boot).items()}
     rt_df, res["redteam"] = redteam_table(rt_raw, hyp_boot) if rt_raw else (None, None)
     res["leaderboard"] = {"ABM": leaderboard(abm_base, tips["ABM"], boot, False) if abm is not None else None,
                           "LLM": leaderboard(llm_base, tips["LLM"], boot, True) if L is not None else None}
-    cells = matched_cells(abm, L) if abm is not None and L is not None else None
+    cells = matched_cells(cabm, cL) if abm is not None and L is not None else None
     res["proxy_cells"] = cells.to_dict("records") if cells is not None else None
 
     hyps, dend = [], None
-    for src, base, df in (("ABM", abm_base, abm), ("LLM", llm_base, L)):
+    for src, base, df in (("ABM", cabm_base, cabm), ("LLM", cllm_base, cL)):
         if base is None:
             for hid in ("H0", "H1", "H2", "H3", "H4", "H8", "H9", "H10"):
                 hyps.append(_h(hid, src, "–", note=f"no {src} input"))
             continue
-        hyps += [h0(src, base, hyp_boot), h1(src, base, hyp_boot), h2(src, tips[src]), h3(src, vals[src]),
-                 h4(src, df, hyp_boot), h8(src, df, hyp_boot), h9(src, tips[src])]
+        hyps += [h0(src, base, hyp_boot), h1(src, base, hyp_boot), h2(src, ctips[src]), h3(src, vals[src]),
+                 h4(src, df, hyp_boot), h8(src, df, hyp_boot), h9(src, ctips[src])]
         h, dd = h10(src, base, perms)
         hyps.append(h)
         dend = dend or (dd if src == "ABM" else None)
-    hyps += [h5(abm, L, calibrated, hyp_boot), h6(cells, calibrated, hyp_boot), h7_abm(rt_df, hyp_boot),
-             h7_llm(rt_raw, llm_all, hyp_boot)]
+    hyps += [h5(cabm, cL, calibrated, hyp_boot), h6(cells, calibrated, hyp_boot), h7_abm(confirmatory(rt_df), hyp_boot),
+             h7_llm(rt_raw and [r for r in rt_raw if r.get("strategy") not in EXPLORATORY], confirmatory(llm_all),
+                    hyp_boot)]
     apply_holm(hyps)
     order = list(HYP)
     hyps.sort(key=lambda h: (order.index(h["id"]), h["source"]))

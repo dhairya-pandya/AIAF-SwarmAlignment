@@ -75,13 +75,13 @@ The provenance of the results is recorded in these files:
 | `hiveguard/task.py` | hidden-profile best-of-n generator |
 | `hiveguard/topology.py` | ring, small-world, scale-free, star, full |
 | `hiveguard/world.py` | task, graph, roles and target for one run (shared by ABM and LLM) |
-| `hiveguard/abm.py` | ABM twins of S0–S10, attacks A1–A5, modules M1–M6 |
+| `hiveguard/abm.py` | ABM twins of S0–S10 (plus exploratory S11), attacks A1–A5, modules M1–M6 |
 | `hiveguard/search.py` | red-team searchers: random, hub, GA, binary PSO, MAP-Elites |
 | `hiveguard/stage_a.py` | Stage A grid and red-team runner (multiprocess) |
 | `hiveguard/schema.py` | pydantic output schema and tolerant JSON extraction |
 | `hiveguard/llm.py` | OpenAI-compatible client (NVIDIA, OpenRouter, Ollama, mock), rate limits, sqlite cache |
 | `hiveguard/agents.py` | prompt builders |
-| `hiveguard/llm_strategies.py` | LLM views and update instructions for S0–S10 |
+| `hiveguard/llm_strategies.py` | LLM views and update instructions for S0–S10 (plus exploratory S11) |
 | `hiveguard/env.py` | LLM round loop, modules, board, JSONL logs, replay |
 | `hiveguard/llm_runs.py` | pilot and Stage B blocks (resumable CSV) |
 | `hiveguard/calibrate.py` | kappa/lambda fit on pilot runs |

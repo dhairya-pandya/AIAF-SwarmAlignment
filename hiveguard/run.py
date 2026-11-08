@@ -47,6 +47,7 @@ def main(argv=None) -> None:
     p.add_argument("--params")
     p.add_argument("--seeds", type=int, default=30)
     p.add_argument("--quick", action="store_true", help="N=12 only, 5 seeds")
+    p.add_argument("--strategies", nargs="+", help="subset of strategies (default: all)")
     p.add_argument("--workers", type=int)
 
     p = sub.add_parser("search", help="red-team searchers on the ABM")
@@ -121,6 +122,8 @@ def main(argv=None) -> None:
     elif a.cmd == "stageA":
         from .stage_a import run_stage_a
         kw = dict(seeds=a.seeds)
+        if a.strategies:
+            kw["strategies"] = a.strategies
         if a.quick:
             kw.update(n_grid=[12], seeds=5)
         df = run_stage_a(a.out, load_params(a.params), workers=a.workers, **kw)

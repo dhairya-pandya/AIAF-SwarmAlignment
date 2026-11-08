@@ -82,3 +82,32 @@ def test_quorum_blocks_a1():
     base = np.mean([run_abm(RunConfig(strategy="S2", f=3 / 12, attack="A1", seed=s))["con"] for s in range(30)])
     q = np.mean([run_abm(RunConfig(strategy="S2", f=3 / 12, attack="A1", modules=["M3"], seed=s))["con"] for s in range(30)])
     assert q < base
+
+
+def _mean_trust(sim, group):
+    T = sim.strategy.T
+    A = sim.strategy.base_visibility(sim) > 0
+    np.fill_diagonal(A, False)
+    m = A[np.ix_(sim.world.honest, group)]
+    return T[np.ix_(sim.world.honest, group)][m].mean() if m.any() else np.nan
+
+
+def test_s11_trust_falls_for_attackers():
+    """Exploratory S11: honest receivers end up trusting attackers less than honest neighbours."""
+    att, hon = [], []
+    for s in range(10):
+        sim = ABMSim(RunConfig(strategy="S11", f=0.25, n_agents=12, attack="A2", seed=s))
+        sim.run()
+        att.append(_mean_trust(sim, sim.world.attacker))
+        hon.append(_mean_trust(sim, sim.world.honest))
+    assert np.nanmean(att) < np.nanmean(hon)
+    assert (sim.strategy.T >= ABMParams().s11_floor - 1e-12).all()
+
+
+def test_s11_without_trust_updates_is_s2():
+    p = ABMParams(s11_eta=0.0)
+    for s in range(3):
+        a = ABMSim(RunConfig(strategy="S11", f=0.25, seed=s), p)
+        b = ABMSim(RunConfig(strategy="S2", f=0.25, seed=s), p)
+        b.rng.bit_generator.state = a.rng.bit_generator.state     # same random stream as the S11 run
+        assert (a.run()["choices"] == b.run()["choices"]).all()

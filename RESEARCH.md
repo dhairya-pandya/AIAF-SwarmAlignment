@@ -148,6 +148,14 @@ Contents
 - Learn: in a *hidden profile*, groups discuss shared information more than unshared information and miss the best option.
 - Use: the **task design**. Facts are split across agents so that pooling is required. This makes communication *useful*, which is what makes compromise costly. It also controls for the model's prior knowledge, since the items are fictional.
 
+**C14. Reciprocal food sharing in the vampire bat.** Wilkinson, Nature 1984. [doi:10.1038/308181a0](https://doi.org/10.1038/308181a0)
+- Learn: vampire bats regurgitate blood meals to roost-mates that failed to feed, and donations go preferentially to individuals that have shared before: help is conditioned on a remembered history with each partner.
+- Use: the inspiration for the exploratory strategy **S11** (reciprocity / reputation, DEVIATIONS D22): per-neighbour trust built from past exchanges. Added post hoc on 2026-11-09; DOI checked against Crossref (title and author match).
+
+**C15. Food sharing in vampire bats: reciprocal help predicts donations more than relatedness or harassment.** Carter & Wilkinson, Proc. R. Soc. B 2013. [doi:10.1098/rspb.2012.2573](https://doi.org/10.1098/rspb.2012.2573)
+- Learn: in a captive colony, how much a bat had received from a partner predicted how much it donated to that partner better than kinship did.
+- Use: supports modelling S11's influence weights as a function of each partner's track record rather than a fixed rank. Added post hoc on 2026-11-09; DOI checked against Crossref (title and authors match).
+
 ## D. Swarm-robotics dependability and security
 
 **D1. Towards dependable swarms and a new discipline of swarm engineering.** Winfield, Harper & Nembrini, SR 2004 / LNCS 3342, 2005. [doi:10.1007/978-3-540-30552-1_11](https://doi.org/10.1007/978-3-540-30552-1_11)

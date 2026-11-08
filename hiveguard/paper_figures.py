@@ -205,12 +205,13 @@ COMP_LABEL = {"direct": "Direct messages", "medium": "Shared medium", "memory": 
               "hierarchy": "Hierarchy", "decay": "Distance decay", "roles": "Roles",
               "negfb": "Negative feedback", "quorum": "Quorum"}
 # kind of negative feedback, from DESIGN §6.3 (the code stores the binary flag only)
-NEGFB_KIND = {"S4": "evaporation", "S5": "abandon", "S8": "separation", "S9": "decay+stop", "S10": "verify"}
-FAMILY_ORDER = ["baseline", "abstract", "insects", "wolves", "fireflies", "birds"]
+NEGFB_KIND = {"S4": "evaporation", "S5": "abandon", "S8": "separation", "S9": "decay+stop", "S10": "verify",
+              "S11": "trust decay"}
+FAMILY_ORDER = ["baseline", "abstract", "insects", "wolves", "fireflies", "birds", "mammals"]
 INSP_SHORT = {"S0a": "upper bound", "S0b": "lower bound", "S1": "voting", "S2": "deliberation",
               "S3": "flocking, abstracted", "S4": "ant pheromone trails", "S5": "bee foraging",
               "S6": "firefly flashing", "S7": "wolf-pack ranks", "S8": "bird flocking", "S9": "bee nest-site choice",
-              "S10": "insect task roles"}
+              "S10": "insect task roles", "S11": "vampire-bat sharing"}
 
 
 def strategy_rows() -> list[tuple[str, str]]:
@@ -234,7 +235,7 @@ def fig_components(plt, path: Path) -> None:
     ax.set_xlim(0, W)
     ax.set_ylim(H, 0)
     ax.axis("off")
-    x_bar, x_fam, x_id, x_name, x_insp = 0.01, 0.09, 0.62, 0.95, 2.27
+    x_bar, x_fam, x_id, x_name, x_insp = 0.01, 0.09, 0.67, 0.98, 2.27
     cws = [0.74 if c == "negfb" else 0.33 for c in COMP_COLS]
     x_grid = W - 0.01 - sum(cws)
     cx = [x_grid + sum(cws[:j]) for j in range(len(cws))]
@@ -255,7 +256,7 @@ def fig_components(plt, path: Path) -> None:
         cy = y + rh / 2
         if spans[fam][0] == y:
             ax.text(x_fam, cy, fam, fontsize=8, va="center", color=S.FAMILY_COLOR[fam], fontweight="semibold")
-        ax.text(x_id, cy, s, fontsize=8, va="center", family=S.MONO)
+        ax.text(x_id, cy, S.strategy_id(s), fontsize=8, va="center", family=S.MONO)
         ax.text(x_name, cy, S.STRATEGY_NAME[s], fontsize=8, va="center")
         ax.text(x_insp, cy, INSP_SHORT[s], fontsize=8, va="center", color=S.MUTED)
         code = COMPONENTS.get(s)

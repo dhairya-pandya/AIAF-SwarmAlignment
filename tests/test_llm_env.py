@@ -73,3 +73,20 @@ def test_core_block_size():
     cfgs = block_configs("core", ["mock:mock"], 3)
     # S2, S3 on ring+full; S0b, S1, S4, S7, S9 on full only; plus S0a oracle
     assert len(cfgs) == (2 * 2 + 5) * 3 * 3 + 3
+
+
+def test_s11_trust_from_claims(tmp_path):
+    from hiveguard.schema import Claim
+    env = LLMEnv(RunConfig(strategy="S11", backend="llm", f=0.25), LLMClient(tmp_path / "c.sqlite"), None)
+    st, t = env.strategy, env.task
+    i = int(next(k for k in range(env.N) if env.world.honest[k]))
+    f = t.facts[env.world.holdings[i][0]]
+    opt, att = t.option_id(f.option), t.attributes[f.attribute]
+    other = [x for x in range(len(t.facts)) if x not in env.world.holdings[i]][0]
+    g = t.facts[other]
+    assert st.check(i, [Claim(option=opt, attribute=att, value=f.value)]) == (1, 0)
+    assert st.check(i, [Claim(option=opt, attribute=att, value=(f.value + 1) % 11)]) == (0, 1)
+    assert st.check(i, [Claim(option=t.option_id(g.option), attribute=t.attributes[g.attribute], value=g.value)]) == (0, 0)
+    env.run()
+    assert all(st.floor <= v for row in st.trust.values() for v in row.values())
+    assert "trust" in env._messages(i, 1)[1]["content"]

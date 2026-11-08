@@ -24,7 +24,7 @@ from pathlib import Path
 
 import networkx as nx
 
-from .config import TIER, RunConfig
+from .config import EXPLORATORY, TIER, RunConfig
 from .world import build_world
 
 OPTION_IDS = "ABCDEFGHIJ"
@@ -45,6 +45,8 @@ STRATEGIES = {
     "S8": ("Boids", "Alignment and cohesion with a separation push against groupthink", "birds"),
     "S9": ("Honeybee waggle dance", "Scouts dance for options on a board; decision by quorum", "insects"),
     "S10": ("Division of labour", "Proposer-verifier roles taken by response thresholds", "insects"),
+    "S11": ("Reciprocity / reputation", "Exploratory: neighbours weighted by trust earned from claims that match "
+            "your own facts", "mammals"),
 }
 MODULES = {
     "none": ("No defence", "Strategy as specified"),
@@ -86,7 +88,7 @@ def dump(path: Path, obj) -> None:
 
 def labels() -> dict:
     return {
-        "strategies": {k: {"name": n, "desc": d, "family": fam, "tier": TIER.get(k),
+        "strategies": {k: {"name": n, "desc": d, "family": fam, "tier": TIER.get(k), "exploratory": k in EXPLORATORY,
                            "comm": "board" if k in BOARD else "broadcast" if k in BROADCAST
                            else "none" if k in SOLO else "graph"}
                        for k, (n, d, fam) in STRATEGIES.items()},

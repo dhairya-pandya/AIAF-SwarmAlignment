@@ -1,4 +1,4 @@
-"""Agent-based-model twins of the 11 strategies, plus attacks and defence modules (DESIGN §6–8).
+"""Agent-based-model twins of the 11 pre-registered strategies (plus exploratory S11), plus attacks and defence modules (DESIGN §6–8).
 
 Conventions
 - Rounds r = 0..R-1. Round 0 is an independent answer from private evidence. In round r >= 1
@@ -52,6 +52,9 @@ class ABMParams:
     boids_thresh: float = 0.8
     # S10 response threshold
     s10_theta: tuple = (0.2, 0.8)
+    # S11 reciprocity / reputation (exploratory, DEVIATIONS D22)
+    s11_eta: float = 0.5
+    s11_floor: float = 0.05
     # modules
     m1_rho: float = 0.3
     m1_hide: float = 0.1
@@ -369,9 +372,49 @@ class S10(Strategy):
         return B, argmax_rand(B, sim.rng)
 
 
+class S11(Strategy):
+    """Reciprocity / reputation (exploratory; vampire-bat reciprocal food sharing, Wilkinson 1984).
+
+    Each agent keeps a trust score per graph neighbour (start 1.0) and checks each visible neighbour's report
+    against its own first-hand facts before the S2 DeGroot update:
+    - match: the neighbour holds a fact about its chosen option that the receiver also holds (its first-hand
+      claims about that option include one the receiver can confirm) -> trust x (1 + eta);
+    - contradiction: otherwise, if the receiver holds facts about the neighbour's chosen option and its own
+      evidence ranks that option below its evidence argmax -> trust x (1 - eta), floored at s11_floor;
+    - neutral: the receiver holds no facts about that option.
+    Attackers hold no facts, so they never match and are contradicted at a rate set by fact overlap.
+    The S2 sender weight confidence^lambda is multiplied by trust, so eta = 0 reproduces S2."""
+
+    def init(self, sim):
+        self.T = np.ones((sim.N, sim.N))
+        n_f = len(sim.world.task.facts)
+        H = np.zeros((sim.N, n_f))
+        for i, h in enumerate(sim.world.holdings):
+            H[i, h] = 1.0
+        opt = np.array([f.option for f in sim.world.task.facts])
+        # shared[o, i, j]: i and j hold a common fact about option o
+        self.shared = np.stack([(H[:, opt == o] @ H[:, opt == o].T) > 0 for o in range(sim.n)])
+        return super().init(sim)
+
+    def update_trust(self, sim, rep: Reports, V: np.ndarray) -> None:
+        p, ch = sim.p, rep.choice
+        vis = V > 0
+        match = vis & self.shared[ch, :, np.arange(sim.N)].T          # (receiver i, sender j)
+        contra = vis & ~match & sim.F[:, ch] & (sim.E[:, ch] < sim.E.max(1, keepdims=True))
+        self.T = np.where(contra, np.maximum(self.T * (1 - p.s11_eta), p.s11_floor),
+                          np.where(match, self.T * (1 + p.s11_eta), self.T))
+
+    def step(self, sim, r, rep, V):
+        self.update_trust(sim, rep, V)
+        M, has = social_mean(V * self.T, rep, sim.p.lam)
+        k = sim.kappa[:, None]
+        B = np.where(has[:, None], (1 - k) * sim.B + k * M, sim.B)
+        return B, argmax_rand(B, sim.rng)
+
+
 STRATEGY_CLASSES = {"S0a": S0a, "S0b": S0b, "S1": S1, "S2": S2, "S3": S3, "S4": S4, "S5": S5,
-                    "S6": S6, "S7": S7, "S8": S8, "S9": S9, "S10": S10}
-SOCIAL = {"S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10"}
+                    "S6": S6, "S7": S7, "S8": S8, "S9": S9, "S10": S10, "S11": S11}
+SOCIAL = {"S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11"}
 
 
 # ---------------------------------------------------------------- simulation

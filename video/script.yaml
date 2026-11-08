@@ -100,54 +100,42 @@ scenes:
   # Six clips add ~40-50 s with their narration, so keep the total under 5 min (drop or trim a bullets
   # scene if needed). Clips with longer narration hold their last frame. Narration below is a draft.
   # Available: ants, bees, wolves, birds, fireflies, debate, pso, bats (bats = S11, exploratory).
-  # - id: howitworks
-  #   type: bullets
-  #   kicker: "How each swarm works"
-  #   heading: "Same goal, different rules for pooling what each agent knows"
-  #   bullets:
-  #     - "Each clip: lime/blue tiles are honest agents, red-cored tiles are compromised"
-  #     - "Dark red = an honest agent that has been misled"
-  #   narration: >
-  #     Here is how six of these swarms coordinate, and where a compromised agent gets its foothold.
-  # - id: how_ants
-  #   type: clip
-  #   path: video/anim/ants.mp4
-  #   heading: "Ants: trails on a shared board"
-  #   narration: >
-  #     Ants never talk directly. They post to a shared board; strong trails get reinforced, and every
-  #     trail slowly evaporates unless someone renews it.
-  # - id: how_bees
-  #   type: clip
-  #   path: video/anim/bees.mp4
-  #   heading: "Honeybees: dances, stop signals, quorum"
-  #   narration: >
-  #     Honeybee scouts dance for a site, others follow strong dances, stop signals knock bad dances
-  #     down, and the swarm commits only at a quorum.
-  # - id: how_wolves
-  #   type: clip
-  #   path: video/anim/wolves.mp4
-  #   heading: "Wolves: follow the leaders"
-  #   narration: >
-  #     In the wolf pack, the three most confident agents lead and everyone follows. An attacker that
-  #     simply claims maximum confidence takes the lead.
-  # - id: how_birds
-  #   type: clip
-  #   path: video/anim/birds.mp4
-  #   heading: "Birds: align with your neighbours"
-  #   narration: >
-  #     Boids align with their neighbours, while a few keep a dissenting view when the crowd gets too uniform.
-  # - id: how_fireflies
-  #   type: clip
-  #   path: video/anim/fireflies.mp4
-  #   heading: "Fireflies: drift toward the brightest"
-  #   narration: >
-  #     Fireflies drift toward brighter, more confident neighbours, and that light fades with distance.
-  # - id: how_debate
-  #   type: clip
-  #   path: video/anim/debate.mp4
-  #   heading: "Debate: average your neighbours"
-  #   narration: >
-  #     In free debate each agent averages its neighbours. Attackers who never move drag the average toward them.
+  - id: howitworks
+    type: bullets
+    kicker: "How each swarm works"
+    heading: "Same goal, different rules for pooling what each agent knows"
+    bullets:
+      - "Lime and blue tiles are honest agents; red-cored tiles are compromised"
+      - "Dark red = an honest agent that has been misled"
+    narration: >
+      Here is how four of these swarms coordinate, and where a compromised agent gets its foothold.
+  - id: how_ants
+    type: clip
+    path: video/anim/ants.mp4
+    heading: "Ants: trails on a shared board"
+    narration: >
+      Ants never talk directly. They post to a shared board; strong trails get reinforced, and every
+      trail slowly evaporates unless someone renews it.
+  - id: how_bees
+    type: clip
+    path: video/anim/bees.mp4
+    heading: "Honeybees: dances, stop signals, quorum"
+    narration: >
+      Honeybee scouts dance for a site, others follow strong dances, stop signals knock bad dances
+      down, and the swarm commits only at a quorum.
+  - id: how_wolves
+    type: clip
+    path: video/anim/wolves.mp4
+    heading: "Wolves: follow the leaders"
+    narration: >
+      In the wolf pack, the three most confident agents lead and everyone follows. An attacker that
+      simply claims maximum confidence takes the lead.
+  - id: how_debate
+    type: clip
+    path: video/anim/debate.mp4
+    heading: "Debate: average your neighbours"
+    narration: >
+      In free debate each agent averages its neighbours. Attackers who never move drag the average toward them.
   # (also: video/anim/pso.mp4 particle swarm, video/anim/bats.mp4 vampire-bat trust, exploratory)
 
   - id: defences
@@ -174,31 +162,48 @@ scenes:
     zoom: 1.04
     narration: >
       LLM swarms are expensive, so every strategy has an agent-based twin, calibrated on pilot LLM runs and
-      then frozen. In this simulated run, five attackers fabricate evidence, and contamination climbs from sixteen to
-      forty-seven percent in five rounds. The twin powers a large screen and red-team search for worst-case attacks,
+      then frozen. In this simulated run, five attackers fabricate evidence, and contamination climbs round by round. The twin powers a large screen and red-team search for worst-case attacks,
       which we replay on LLM agents.
 
   # ---------------- RESULTS (skipped until the figures exist and the narration is written)
   - id: results_tipping
     type: image
-    heading: "Result: contamination vs. attacker fraction"
+    heading: "Result: hierarchies tip, dense debate resists"
     image: figures/fig3_con_vs_f.png
+    caption: "Lines: calibrated agent-based twin. Diamonds: LLM swarms, 12 agents, 6 seeds"
     kenburns: true
-    narration: "[RESULTS NARRATION TBD]"
+    narration: >
+      We ran 405 LLM swarm runs and over three hundred thousand twin runs. The wolf-pack hierarchy is the one
+      design that tips: about a fifth of compromised agents capture it, because attackers who claim confidence become
+      the leaders. Free debate on a fully connected network showed no contamination with three of twelve agents compromised, and ant and bee designs stayed
+      near the chance floor, but paid in accuracy.
 
   - id: results_modules
-    type: image
-    heading: "Result: which defences are worth their cost"
-    image: figures/fig5_modules_components.png
-    kenburns: true
-    narration: "[RESULTS NARRATION TBD]"
+    type: bullets
+    kicker: "Result · defences on LLM swarms"
+    heading: "Quorum works. Evaporation backfires."
+    bullets:
+      - "Quorum on first-hand evidence: contamination −0.17, no measurable accuracy cost"
+      - "It roughly halves leader capture in the wolf pack (0.61 → 0.33)"
+      - "Evaporation makes the wolf pack worse: +0.31"
+      - "Stop signals, dilution and model diversity: no measurable effect on LLM swarms"
+    narration: >
+      Of the six defences, only the honeybee-style quorum on first-hand evidence reduced LLM contamination, and it
+      cost no measurable accuracy. It roughly halved leader capture in the wolf pack. Pheromone-style evaporation did
+      the opposite: honest agents change their minds as evidence arrives, while attackers never do, so evaporation
+      punished the honest majority.
 
-  - id: results_redteam
+  - id: results_transfer
     type: image
-    heading: "Result: red-team attacks and transfer to LLM agents"
-    image: figures/fig6_redteam.png
+    heading: "Result: classical swarm theory does not transfer"
+    image: figures/fig7_abm_vs_llm.png
+    caption: "Twin prediction vs observed LLM contamination, 24 matched conditions"
     kenburns: true
-    narration: "[RESULTS NARRATION TBD]"
+    narration: >
+      The biggest surprise: the calibrated swarm model overestimated LLM contamination by thirty-five points and
+      could not rank conditions. It even got topology backwards. On a dense network each reasoning agent sees enough
+      honest evidence to reject fabricated claims. Worst-case attacks found on the model also failed to transfer.
+      For agent swarms, what matters is whether every agent sees, and must check, first-hand evidence.
 
   # Optional screen recording of the replay viewer (skipped while the file is missing)
   # - id: replay_demo
@@ -212,21 +217,21 @@ scenes:
     kicker: "Reproducibility"
     heading: "Every number can be regenerated from the repository"
     bullets:
-      - "Pre-registered: hypotheses H0–H10 committed before any code; every deviation logged"
+      - "Pre-registered: hypotheses H0–H10 committed before any experiment; every deviation logged"
       - "Every LLM call cached, keyed by a hash of model, prompt, seed and temperature"
       - "Every run logged turn by turn: prompt, raw response, parsed output, choice"
       - "Replay any LLM run byte-identically from the cache, with no API key and no cost"
       - "Re-analyse, replay, or re-run: three levels of reproduction"
     narration: >
-      The hypotheses were committed before any code, and every deviation is logged. Every LLM call is
+      The hypotheses were committed before any experiment ran, and every deviation is logged. Every LLM call is
       cached and every run is logged, so anyone can replay a run with no API key and get a byte-identical log.
 
   - id: closing
     type: title
-    kicker: "Code, logs, cache and pre-registration"
+    kicker: "Code, logs, cache · results at swarm-immunity.vercel.app"
     title: "github.com/dhairya-pandya/AIAF-SwarmAlignment"
     subtitle: "Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI"
     author: "Dhairya Pandya"
     affiliation: "IIITDM Jabalpur · Apart × AIAF Swarm Alignment Hackathon 2026"
     narration: >
-      Code, logs and the response cache are open at the repository on screen. Thank you for watching.
+      Code, logs, the response cache and an interactive replay viewer are open, at the addresses on screen. Thank you for watching.

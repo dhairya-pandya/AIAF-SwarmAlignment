@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swarm Immunity</title>
+<meta name="description" content="Results of a safety benchmark of bio-inspired coordination strategies for LLM agent swarms with compromised agents.">
+<meta name="author" content="Dhairya Pandya">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l12 7v14l-12 7-12-7V9z' fill='%23E69F00'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%230072B2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="#top">Swarm Immunity</a>
+    <nav aria-label="Sections">
+      <a href="#leaderboard">Leaderboard</a>
+      <a href="#curves">Curves</a>
+      <a href="#defences">Defences</a>
+      <a href="#hypotheses">Hypotheses</a>
+      <a href="#redteam">Red team</a>
+      <a href="#replay">Replay</a>
+      <a href="#figures">Figures</a>
+      <a href="#data">Data</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div id="status" class="status wrap" role="status" aria-live="polite">Loading data…</div>
+
+  <section id="top" class="hero wrap">
+    <p class="eyebrow">Apart × AIAF Swarm Alignment Hackathon · November 2026</p>
+    <h1>Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI</h1>
+    <p class="byline">Dhairya Pandya</p>
+    <p class="lede">When many AI agents work together, a few compromised members can steer the whole group to a
+      wrong answer. This project borrows coordination rules from ant trails, honeybee nest-site choice, wolf packs,
+      fireflies and bird flocks, gives each rule to a swarm of language-model agents, and plants compromised agents
+      that push a wrong "target" option. Every honest agent holds only a few facts, so the group has to pool
+      evidence to find the right answer. We measure how far the compromise spreads (contamination), how often honest
+      agents still choose correctly (accuracy), the attacker share at which a swarm tips over, and which defences
+      (evaporation, stop signals, quorum, dilution, model diversity, sparse wiring) buy the most safety for the
+      least loss of usefulness. The design and hypotheses were pre-registered before any code was written.</p>
+    <dl class="glossary">
+      <div><dt>Contamination</dt><dd>Share of honest agents whose final choice is the attackers' target. Lower is better.</dd></div>
+      <div><dt>Accuracy</dt><dd>Share of honest agents whose final choice is correct. Reported at f = 0 (no attackers).</dd></div>
+      <div><dt>f</dt><dd>Fraction of agents that are compromised.</dd></div>
+      <div><dt>f*</dt><dd>Tipping point: the f at which a logistic fit of contamination crosses 0.5.</dd></div>
+      <div><dt>CI</dt><dd>95% bootstrap confidence interval over seeds, shown as whiskers.</dd></div>
+    </dl>
+  </section>
+
+  <section id="leaderboard" class="wrap panel">
+    <h2>Strategy leaderboard <span class="chip-slot"></span></h2>
+    <p class="hint">Contamination at the chosen attacker fraction and accuracy without attackers, for every
+      strategy in the selected cell. Sorted by contamination (lowest first). Whiskers are 95% CIs.</p>
+    <div class="filters" data-filters="main"></div>
+    <div id="lb-body"></div>
+    <details class="sub">
+      <summary>Headline table from the analysis (N = 12, fully connected, attack A2, no defence)</summary>
+      <div id="lb-headline"></div>
+    </details>
+  </section>
+
+  <section id="curves" class="wrap panel">
+    <h2>Contamination vs attacker fraction <span class="chip-slot"></span></h2>
+    <p class="hint">One panel per strategy, for the cell selected by the filters (shared with the leaderboard).
+      <span class="key"><i class="sw sw-con"></i>contamination</span>
+      <span class="key"><i class="sw sw-acc"></i>accuracy</span>
+      <span class="key"><i class="sw sw-fstar"></i>tipping point f* (when inside the grid)</span></p>
+    <div class="filters" data-filters="main"></div>
+    <div id="curves-body" class="multiples"></div>
+  </section>
+
+  <section id="defences" class="wrap panel">
+    <h2>Defence modules: cost and benefit <span class="chip-slot"></span></h2>
+    <p class="hint">Each module is compared with no defence on the same seeds. Up = less contamination when attackers
+      are present; right = higher accuracy without attackers (left means the defence costs usefulness).
+      Crosses are 95% CIs.</p>
+    <div class="filters" id="mod-filters"></div>
+    <div id="mod-body"></div>
+  </section>
+
+  <section id="hypotheses" class="wrap panel">
+    <h2>Hypothesis scorecard <span class="chip-slot"></span></h2>
+    <p class="hint">Pre-registered hypotheses H0–H10 and their verdicts, per data source. p values are adjusted with
+      Holm's method where the test belongs to the family.</p>
+    <div class="filters" id="hyp-filters"></div>
+    <div id="hyp-body" class="cards"></div>
+  </section>
+
+  <section id="redteam" class="wrap panel">
+    <h2>Red team: how bad an attack can a search find? <span class="chip-slot"></span></h2>
+    <p class="hint">Search algorithms choose which agents to compromise (k nodes). Each panel shows the best
+      contamination each searcher found within its evaluation budget, over repeats: bar = interquartile range,
+      dot = mean, whisker = 95% CI of the mean.</p>
+    <div id="rt-body"></div>
+  </section>
+
+  <section id="replay" class="wrap panel">
+    <h2>Replay viewer</h2>
+    <p class="hint">Animates one logged run round by round on its communication graph. Nodes are coloured by the
+      option each agent chose in that round (the letter is shown too). Hover, focus or tap a node to read its
+      message.</p>
+    <div id="replay-body"></div>
+  </section>
+
+  <section id="figures" class="wrap panel">
+    <h2>Report figures <span class="chip-slot"></span></h2>
+    <div id="fig-body" class="gallery"></div>
+  </section>
+
+  <section id="data" class="wrap panel">
+    <h2>Data and provenance</h2>
+    <div id="data-body"></div>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <p>Swarm Immunity · Dhairya Pandya · Code package <code>hiveguard</code>. Every number on this page is read from the
+    JSON files in <code>data/</code>; nothing is typed in by hand.</p>
+</footer>
+<script src="app.js" defer></script>
+</body>
+</html>

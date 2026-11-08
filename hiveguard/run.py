@@ -1,4 +1,4 @@
-"""CLI: abm / stageA / search / pilot / calibrate / stageB / replay / analyze."""
+"""CLI: abm / stageA / search / pilot / calibrate / stageB / replay / analyze / site."""
 from __future__ import annotations
 
 import argparse
@@ -99,6 +99,14 @@ def main(argv=None) -> None:
     p.add_argument("--perms", type=int, default=9999, help="Mantel permutations (H10)")
     p.add_argument("--workers", type=int)
 
+    p = sub.add_parser("site", help="build site/data (results, cells, replays) and copy figures for the results page")
+    p.add_argument("--results", default="results/results.json")
+    p.add_argument("--logs", nargs="*", default=["logs", "results/oracle_logs"], help="run log files or folders")
+    p.add_argument("--runs", nargs="*", help="run ids to replay (default: the most informative runs)")
+    p.add_argument("--max-replays", type=int, default=12)
+    p.add_argument("--figures", help="figures folder (default: the paths listed in the results JSON)")
+    p.add_argument("--out", default="site")
+
     a = ap.parse_args(argv)
 
     if a.cmd == "abm":
@@ -129,6 +137,11 @@ def main(argv=None) -> None:
                       a.hyp_boot, a.perms, a.workers)
         print(summary_table(res))
         print(f"-> {a.out}, figures in {a.figures}/")
+    elif a.cmd == "site":
+        from .export_site import export_site
+        m = export_site(a.results, a.logs, a.figures, a.out, a.runs, a.max_replays)
+        print(f"{'calibrated' if m['calibrated'] else 'UNCALIBRATED (exploratory)'}: {m['replays']} replays, "
+              f"{len(m['figures'])} figures, {len(m['skipped_logs'])} logs skipped -> {a.out}/data")
     elif a.cmd == "replay":
         from .env import replay
         ok = replay(a.run_id, a.logs, a.cache)

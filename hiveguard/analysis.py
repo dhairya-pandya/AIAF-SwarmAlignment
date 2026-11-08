@@ -41,7 +41,6 @@ HYP = {
     "H9": "Stigmergy with evaporation (S4) and honeybee (S9) are the most robust Tier-1 strategies",
     "H10": "Results group by component, not metaphor",
 }
-OKABE = ["#0072B2", "#E69F00", "#009E73", "#D55E00", "#CC79A7", "#56B4E9", "#000000", "#F0E442"]
 ABM_KEYS = ["strategy", "module", "topology", "N", "f_eff", "attack"]
 LLM_KEYS = ["strategy", "module", "topology", "N", "R", "f_eff", "attack", "onset", "placement", "models"]
 ON = ["strategy", "topology", "N", "f_eff", "attack", "seed"]
@@ -647,15 +646,12 @@ def apply_holm(hyps: list[dict]) -> None:
 
 
 # ---------------------------------------------------------------- figures
+# Styling lives in figstyle.py (fonts, palette, sizes, PNG+PDF output). The functions below only choose
+# what to draw; captions (with N, seeds and CI method) belong in the report, so figures carry no titles.
 
 def _style():
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    plt.rcParams.update({"figure.dpi": 150, "savefig.bbox": "tight", "font.size": 9, "axes.spines.top": False,
-                         "axes.spines.right": False, "axes.grid": True, "grid.alpha": 0.25, "axes.titlesize": 10,
-                         "axes.prop_cycle": matplotlib.cycler(color=OKABE), "legend.frameon": False})
-    return plt
+    from . import figstyle
+    return figstyle.apply()
 
 
 def _order(strats) -> list[str]:
@@ -663,35 +659,44 @@ def _order(strats) -> list[str]:
 
 
 def fig_leaderboard(plt, board: list[dict], src: str, path: Path) -> None:
-    cols = ["strategy", "Acc f=0", "Con 1/12", "Con 3/12", "f*", "calls/run"]
+    from . import figstyle as S
+    cols = ["Strategy", "Acc, f = 0 ↑", "Con, f ≈ 1/12 ↓", "Con, f ≈ 3/12 ↓", "f* ↑", "Calls/run"]
     fmt = lambda c: "–" if c is None or c.get("mean") is None else f"{c['mean']:.2f} [{c['lo']:.2f}, {c['hi']:.2f}]"
-    cell = [[b["strategy"], fmt(b["acc_f0"]), fmt(b["con_1/12"]), fmt(b["con_3/12"]),
+    cell = [[S.strategy_label(b["strategy"]), fmt(b["acc_f0"]), fmt(b["con_1/12"]), fmt(b["con_3/12"]),
              "–" if b["f_star"] is None else (f"{b['f_star']:.2f}" if b["f_star_in_range"] else f"> {b['f_max']:.2f}"),
              "–" if b["calls"] is None else f"{b['calls']:.0f}"]
             for b in board]
-    fig, ax = plt.subplots(figsize=(8.5, 0.32 * len(cell) + 0.9))
+    if all(c[-1] == "–" for c in cell):          # ABM has no call counts
+        cols, cell = cols[:-1], [c[:-1] for c in cell]
+    fig, ax = plt.subplots(figsize=(S.FULL, 0.2 * (len(cell) + 1) + 0.1))
     ax.axis("off")
-    t = ax.table(cellText=cell, colLabels=cols, loc="center", cellLoc="center")
+    widths = [0.19, 0.2, 0.2, 0.2, 0.09, 0.12] if len(cols) == 6 else [0.22, 0.22, 0.22, 0.22, 0.12]
+    t = ax.table(cellText=cell, colLabels=cols, loc="center", cellLoc="center", colWidths=widths, edges="open")
     t.auto_set_font_size(False)
     t.set_fontsize(8)
-    t.scale(1, 1.3)
-    for (r, _), c in t.get_celld().items():
-        c.set_edgecolor("#bbbbbb")
+    t.scale(1, 1.25)
+    last = len(cell)
+    for (r, c), k in t.get_celld().items():
+        k.set_linewidth(0.6)
+        k.set_edgecolor(S.INK)
+        k.visible_edges = "TB" if r == 0 else ("B" if r == last else "")
+        if c == 0:
+            k.set_text_props(ha="left")
+            k.PAD = 0.03
         if r == 0:
-            c.set_facecolor("#e8eef5")
-            c.set_text_props(weight="bold")
-    ax.set_title(f"Fig 1. Leaderboard ({src}, N=12, full topology, attack A2, mean [95% CI])")
-    fig.savefig(path)
-    plt.close(fig)
+            k.set_text_props(weight="bold")
+    S.save(fig, path)
 
 
 def fig_pareto(plt, pts: pd.DataFrame, path: Path) -> None:
-    fig, ax = plt.subplots(figsize=(6.5, 4.5))
+    from . import figstyle as S
+    fig, ax = plt.subplots(figsize=(S.HALF + 0.3, 3.0))
     mods = sorted(set(pts.module), key=lambda m: (m != "none", m))
-    for i, m in enumerate(mods):
+    for m in mods:
         g = pts[pts.module == m]
-        ax.scatter(g.cost, g.con, s=28, color=OKABE[i % 8], label=m, marker="o" if m == "none" else "^",
-                   edgecolor="white", linewidth=0.5, zorder=3)
+        ax.scatter(g.cost, g.con, s=16 if m != "none" else 20, color=S.MODULE_COLOR.get(m, S.GREY),
+                   marker=S.MODULE_MARKER.get(m, "o"), label=S.module_label(m), edgecolor="white",
+                   linewidth=0.3, zorder=3, alpha=0.9)
     p = pts.sort_values(["cost", "con"])
     front, best = [], np.inf
     for _, r in p.iterrows():
@@ -699,117 +704,150 @@ def fig_pareto(plt, pts: pd.DataFrame, path: Path) -> None:
             front.append(r)
             best = r.con
     fr = pd.DataFrame(front)
-    ax.step(fr.cost, fr.con, where="post", color="#555555", lw=1, ls="--", zorder=2)
-    for _, r in fr.iterrows():
-        ax.annotate(f"{r.strategy}+{r.module}" if r.module != "none" else r.strategy, (r.cost, r.con), fontsize=7,
-                    xytext=(3, 3), textcoords="offset points")
-    ax.set_xlabel("usefulness loss: Acc(f=0, none) − Acc(f=0, module)")
-    ax.set_ylabel("mean contamination (f>0)")
-    ax.set_title("Fig 2. Safety vs usefulness (ABM, strategies × modules)")
-    ax.legend(title="module", ncol=2, fontsize=7)
-    fig.savefig(path)
-    plt.close(fig)
+    ax.step(fr.cost, fr.con, where="post", color=S.INK, lw=0.8, ls="--", zorder=2)
+    prev, key = None, []
+    for i, (_, r) in enumerate(fr.iterrows(), 1):     # number the front, name it in a key (no label pile-ups)
+        close = prev is not None and abs(prev - r.con) < 0.06
+        ax.annotate(str(i), (r.cost, r.con), fontsize=8, fontweight="bold", xytext=(-4, -3 if close else 0),
+                    textcoords="offset points", ha="right", va="top" if close else "center", color=S.INK)
+        key.append(f"{i}  {r.strategy}+{r.module}" if r.module != "none" else f"{i}  {r.strategy}")
+        prev = r.con
+    ax.text(0.98, 0.98, "Pareto front (dashed)\n" + "\n".join(key), transform=ax.transAxes, ha="right", va="top",
+            fontsize=8, linespacing=1.2)
+    ax.axvline(0, color=S.GREY, lw=0.5, zorder=1)
+    ax.set_xlabel("Usefulness cost: accuracy drop at f = 0")
+    ax.set_ylabel("Contamination at f > 0 (share)")
+    ax.set_ylim(0, 1.0)
+    S.ygrid(ax)
+    ax.legend(ncol=2, loc="upper center", bbox_to_anchor=(0.5, 1.30), handletextpad=0.2, columnspacing=0.6)
+    S.save(fig, path)
 
 
 def fig_curves(plt, abm_cells: pd.DataFrame | None, llm_cells: pd.DataFrame | None, path: Path) -> None:
+    from . import figstyle as S
     strats = _order(set(abm_cells.strategy if abm_cells is not None else []) |
                     set(llm_cells.strategy if llm_cells is not None else []))
     strats = [s for s in strats if s != "S0a"]
     nc = 4
-    nr = math.ceil(len(strats) / nc)
-    fig, axs = plt.subplots(nr, nc, figsize=(10, 2.3 * nr), sharex=True, sharey=True, squeeze=False)
+    nr = math.ceil((len(strats) + 1) / nc)
+    fig, axs = plt.subplots(nr, nc, figsize=(S.FULL, 1.45 * nr + 0.2), sharex=True, sharey=True, squeeze=False)
     Ns = sorted(set(abm_cells.N)) if abm_cells is not None else []
     for ax, s in zip(axs.flat, strats):
         if abm_cells is not None:
             for i, N in enumerate(Ns):
                 g = abm_cells[(abm_cells.strategy == s) & (abm_cells.N == N)].sort_values("f_eff")
-                ax.plot(g.f_eff, g.con, color=OKABE[i], lw=1.4, label=f"ABM N={N}")
-                ax.fill_between(g.f_eff, g.con_lo, g.con_hi, color=OKABE[i], alpha=0.18, lw=0)
+                c = S.N_COLOR.get(N, S.OKABE[i % 8])
+                ax.fill_between(g.f_eff, g.con_lo, g.con_hi, color=c, alpha=0.2, lw=0)
+                ax.plot(g.f_eff, g.con, color=c, lw=1.1, label=f"ABM, N = {N}")
         if llm_cells is not None:
             g = llm_cells[llm_cells.strategy == s].sort_values("f_eff")
-            ax.errorbar(g.f_eff, g.con, yerr=[g.con - g.con_lo, g.con_hi - g.con], fmt="o", ms=4, color=OKABE[3],
-                        capsize=2, label="LLM", zorder=4)
-        ax.set_title(s)
-        ax.set_ylim(-0.03, 1.03)
-    for ax in axs.flat[len(strats):]:
+            ax.errorbar(g.f_eff, g.con, yerr=[g.con - g.con_lo, g.con_hi - g.con], fmt="D", ms=3.2, color=S.LLM_C,
+                        mfc="white", mew=0.9, elinewidth=0.8, capsize=1.5, label="LLM, N = 12", zorder=4)
+        ax.set_title(f"{s} · {S.STRATEGY_SHORT.get(s, s)}", color=S.strategy_color(s) if s not in NON_SOCIAL else S.INK)
+        ax.set_ylim(-0.04, 1.06)
+        ax.set_yticks([0, 0.5, 1])
+        S.ygrid(ax)
+    spare = list(axs.flat[len(strats):])
+    for ax in spare:
         ax.axis("off")
     for ax in axs[-1]:
-        ax.set_xlabel("attacker fraction f")
+        ax.set_xlabel("Attacker fraction f")
+        ax.xaxis.set_tick_params(labelbottom=True)
     for ax in axs[:, 0]:
-        ax.set_ylabel("contamination")
+        ax.set_ylabel("Contamination")
     h, l = axs.flat[0].get_legend_handles_labels()
-    fig.legend(h, l, loc="upper center", ncol=len(l), bbox_to_anchor=(0.5, 1.02))
-    fig.suptitle("Fig 3. Contamination vs f (full topology, module none, 95% CI)", y=1.06)
-    fig.savefig(path)
-    plt.close(fig)
+    if spare:
+        spare[0].legend(h, l, loc="center", title="95% bootstrap CI")
+    else:
+        fig.legend(h, l, loc="upper center", ncol=len(l), bbox_to_anchor=(0.5, 1.03))
+    fig.tight_layout(h_pad=0.6, w_pad=0.6)
+    S.save(fig, path)
 
 
 def fig_heatmap(plt, base: pd.DataFrame, path: Path) -> None:
+    from . import figstyle as S
     Ns = sorted(set(base.N))
     topo = [t for t in ["ring", "small_world", "scale_free", "star", "full"] if t in set(base.topology)]
-    fig, axs = plt.subplots(1, len(Ns), figsize=(3.4 * len(Ns) + 0.6, 4.2), squeeze=False)
+    fig, axs = plt.subplots(1, len(Ns), figsize=(S.FULL, 3.5), squeeze=False, sharey=True)
+    cmap = plt.get_cmap("cividis")
     for ax, N in zip(axs[0], Ns):
         d = base[(base.N == N) & (base.f_eff > 0)]
         M = d.pivot_table(index="strategy", columns="topology", values="con", aggfunc="mean")
         M = M.reindex(index=_order(M.index), columns=topo)
-        im = ax.imshow(M.to_numpy(float), cmap="cividis", vmin=0, vmax=1, aspect="auto")
-        ax.set_xticks(range(len(topo)), [t.replace("_", "-") for t in topo], rotation=40, ha="right")
-        ax.set_yticks(range(len(M.index)), M.index)
-        ax.grid(False)
+        im = ax.imshow(M.to_numpy(float), cmap=cmap, vmin=0, vmax=1, aspect="auto")
+        ax.set_xticks(range(len(topo)), [S.TOPO_NAME.get(t, t) for t in topo], rotation=40, ha="right",
+                      rotation_mode="anchor")
+        ax.set_yticks(range(len(M.index)), [S.strategy_label(s) for s in M.index])
+        ax.tick_params(length=0)
+        for sp in ax.spines.values():
+            sp.set_visible(False)
         for (i, j), v in np.ndenumerate(M.to_numpy(float)):
             if np.isfinite(v):
-                ax.text(j, i, f"{v:.2f}", ha="center", va="center", fontsize=6.5, color="white" if v < 0.55 else "black")
-        ax.set_title(f"N={N}")
-    fig.colorbar(im, ax=axs[0].tolist(), shrink=0.8, label="mean contamination (f>0)")
-    fig.suptitle("Fig 4. Topology × strategy contamination (ABM, module none)")
-    fig.savefig(path)
-    plt.close(fig)
+                r, g_, b, _ = cmap(v)
+                ax.text(j, i, f"{100 * v:.0f}", ha="center", va="center", fontsize=8,
+                        color="white" if 0.299 * r + 0.587 * g_ + 0.114 * b < 0.5 else "black")
+        ax.set_title(f"N = {N}")
+    cb = fig.colorbar(im, ax=axs[0].tolist(), shrink=0.75, pad=0.02, aspect=25)
+    from matplotlib.ticker import PercentFormatter
+    cb.ax.yaxis.set_major_formatter(PercentFormatter(xmax=1))
+    cb.set_label("Contamination at f > 0 (% of honest agents)")
+    cb.outline.set_linewidth(0.5)
+    S.save(fig, path)
 
 
 def fig_modules(plt, effects: dict, dend: dict | None, path: Path) -> None:
     from scipy.cluster.hierarchy import dendrogram, linkage
     from scipy.spatial.distance import squareform
-    fig, axs = plt.subplots(1, 2 if dend else 1, figsize=(11 if dend else 6, 4), squeeze=False)
+    from . import figstyle as S
+    fig, axs = plt.subplots(1, 2 if dend else 1, figsize=(S.FULL if dend else S.HALF + 0.3, 2.6), squeeze=False,
+                            gridspec_kw={"width_ratios": [1.15, 1]} if dend else None)
     ax = axs[0, 0]
     mods = [m for m in sorted(effects) if effects[m]["overall"]["d_con"]]
     x = np.arange(len(mods))
-    for off, key, lab, c in [(-0.2, "d_con", "Δ contamination (f>0)", OKABE[0]), (0.2, "usefulness", "Δ accuracy (f=0)", OKABE[1])]:
+    for off, key, lab, c in [(-0.19, "d_con", "Δ contamination (f > 0)", S.CON_C),
+                             (0.19, "usefulness", "Δ accuracy (f = 0)", S.ACC_C)]:
         e = [effects[m]["overall"][key] or {"diff": np.nan, "lo": np.nan, "hi": np.nan} for m in mods]
         v = np.array([q["diff"] if q["diff"] is not None else np.nan for q in e], float)
         lo = np.array([q["lo"] if q["lo"] is not None else np.nan for q in e], float)
         hi = np.array([q["hi"] if q["hi"] is not None else np.nan for q in e], float)
-        ax.bar(x + off, v, 0.4, color=c, label=lab, yerr=[v - lo, hi - v], capsize=2)
-    ax.axhline(0, color="black", lw=0.7)
-    ax.set_xticks(x, mods)
-    ax.set_ylabel("module − none (paired by seed)")
-    ax.set_title("Module effects (ABM, social strategies pooled)")
-    ax.legend(fontsize=7)
+        ax.bar(x + off, v, 0.38, color=c, label=lab, yerr=[v - lo, hi - v], capsize=1.5,
+               error_kw={"elinewidth": 0.7, "capthick": 0.7, "ecolor": S.INK})
+    ax.axhline(0, color=S.INK, lw=0.6)
+    ax.set_xticks(x, [f"{m}\n{S.MODULE_SHORT.get(m, '')}" for m in mods])
+    ax.tick_params(axis="x", length=0)
+    ax.set_ylabel("Module − none (paired by seed)")
+    S.ygrid(ax)
+    ax.legend(loc="lower right")
+    S.panel_label(ax, "a")
     if dend:
         ax = axs[0, 1]
-        fams = sorted(set(FAMILY.values()))
-        fc = {f: OKABE[i] for i, f in enumerate(fams)}
+        fams = [f for f in S.FAMILY_COLOR if f in set(FAMILY.values())]
         Z = linkage(squareform(dend["D"], checks=False), "average")
-        dendrogram(Z, labels=dend["strategies"], ax=ax, color_threshold=0, above_threshold_color="#666666")
+        with plt.rc_context({"lines.linewidth": 0.9}):
+            dendrogram(Z, labels=dend["strategies"], ax=ax, color_threshold=0, above_threshold_color=S.INK)
         for t in ax.get_xticklabels():
-            t.set_color(fc[FAMILY[t.get_text()]])
+            t.set_color(S.FAMILY_COLOR[FAMILY[t.get_text()]])
             t.set_fontweight("bold")
-        ax.grid(False)
-        ax.set_ylabel("result distance (RMS ΔCon)")
-        ax.set_title("Strategies clustered by vulnerability profile")
+        ax.tick_params(axis="x", length=0, labelsize=8)
+        ax.spines["bottom"].set_visible(False)
+        ax.set_ylabel("Result distance (RMS Δ contamination)")
         for f in fams:
-            ax.plot([], [], "s", color=fc[f], label=f)
-        ax.legend(title="metaphor family", fontsize=7)
-    fig.suptitle("Fig 5. Component ablation (RQ3) and component-vs-metaphor clustering (H10)")
-    fig.savefig(path)
-    plt.close(fig)
+            ax.plot([], [], "s", color=S.FAMILY_COLOR[f], label=f, ms=5)
+        ax.set_ylim(0, ax.get_ylim()[1] * 1.35)
+        ax.legend(title="Metaphor family", loc="upper center", ncol=3, handletextpad=0.1, columnspacing=0.6)
+        S.panel_label(ax, "b")
+    fig.tight_layout(w_pad=1.5)
+    S.save(fig, path)
 
 
 def fig_redteam(plt, raw: list[dict], path_c: Path, path_m: Path) -> None:
+    from matplotlib.ticker import FixedLocator, NullLocator
+    from . import figstyle as S
     probs = sorted({(r.get("strategy"), r.get("topology"), r.get("k")) for r in raw}, key=str)[:4]
-    fig, axs = plt.subplots(1, len(probs), figsize=(4.2 * len(probs), 3.4), squeeze=False)
+    fig, axs = plt.subplots(1, len(probs), figsize=(S.FULL, 1.95), squeeze=False, sharey=True)
     names = ["random", "hub", "ga", "bpso", "map_elites"]
     for ax, pr in zip(axs[0], probs):
-        for i, s in enumerate(names):
+        for s in names:
             cs = [r["curve"] for r in raw if (r.get("strategy"), r.get("topology"), r.get("k")) == pr
                   and r["searcher"] == s and r.get("curve")]
             if not cs:
@@ -818,15 +856,22 @@ def fig_redteam(plt, raw: list[dict], path_c: Path, path_m: Path) -> None:
             C = np.array([c[:L] for c in cs])
             q = np.quantile(C, [0.25, 0.5, 0.75], axis=0)
             ev = np.arange(1, L + 1)
-            ax.plot(ev, q[1], color=OKABE[i], lw=1.4, label=s)
-            ax.fill_between(ev, q[0], q[2], color=OKABE[i], alpha=0.18, lw=0)
+            c = S.SEARCHER_COLOR.get(s, S.GREY)
+            ax.fill_between(ev, q[0], q[2], color=c, alpha=0.18, lw=0, step="post")
+            ax.step(ev, q[1], where="post", color=c, lw=1.1, label=S.SEARCHER_NAME.get(s, s))
+        ax.set_xscale("log")
+        ax.xaxis.set_major_locator(FixedLocator([1, 10, 100, 500]))
+        ax.xaxis.set_minor_locator(NullLocator())
+        ax.set_xticklabels(["1", "10", "100", "500"])
         ax.set_xlabel("ABM evaluations")
-        ax.set_title(f"{pr[0]} / {pr[1]} / k={pr[2]}")
-    axs[0, 0].set_ylabel("best contamination so far")
-    axs[0, 0].legend(fontsize=7)
-    fig.suptitle("Fig 6a. Red-team efficiency (median, IQR over repeats)")
-    fig.savefig(path_c)
-    plt.close(fig)
+        ax.set_title(f"{pr[0]} · {S.TOPO_NAME.get(pr[1], pr[1])} · k = {pr[2]}")
+        ax.set_ylim(0, 1.02)
+        S.ygrid(ax)
+    axs[0, 0].set_ylabel("Best contamination so far")
+    h, l = axs[0, 0].get_legend_handles_labels()
+    fig.legend(h, l, loc="upper center", ncol=len(l), bbox_to_anchor=(0.5, 1.1))
+    fig.tight_layout(w_pad=0.8)
+    S.save(fig, path_c)
     arch = [r["archive"] for r in raw if r["searcher"] == "map_elites" and r.get("archive")
             and (r.get("strategy"), r.get("topology"), r.get("k")) == probs[0]]
     if not arch:
@@ -834,45 +879,55 @@ def fig_redteam(plt, raw: list[dict], path_c: Path, path_m: Path) -> None:
     cells = [tuple(map(int, k.split(","))) for a in arch for k in a]
     nb, no = max(c[0] for c in cells) + 1, max(c[1] for c in cells) + 1
     nb = max(nb, 8)
-    S = np.full((len(arch), nb, no), np.nan)
+    S_ = np.full((len(arch), nb, no), np.nan)
     for i, a in enumerate(arch):
         for k, v in a.items():
             b, o = map(int, k.split(","))
-            S[i, b, o] = v
+            S_[i, b, o] = v
     with np.errstate(all="ignore"):
         import warnings
         warnings.simplefilter("ignore", RuntimeWarning)
-        M = np.nanmean(S, 0)
-    fig, ax = plt.subplots(figsize=(5, 4))
-    im = ax.imshow(M, cmap="viridis", origin="lower", aspect="auto", vmin=0, vmax=1)
-    ax.grid(False)
-    ax.set_xlabel("onset round")
-    ax.set_ylabel("mean attacker betweenness (bin)")
-    fig.colorbar(im, label="elite contamination (mean over repeats)")
-    ax.set_title(f"Fig 6b. MAP-Elites archive ({probs[0][0]} / {probs[0][1]})")
-    fig.savefig(path_m)
-    plt.close(fig)
+        M = np.nanmean(S_, 0)
+    fig, ax = plt.subplots(figsize=(S.HALF, 2.5))
+    cm = plt.get_cmap("viridis").with_extremes(bad=S.LIGHT)
+    im = ax.imshow(M, cmap=cm, origin="lower", aspect="auto", vmin=0, vmax=1)
+    ax.set_xticks(range(no))
+    ax.set_yticks(range(nb))
+    ax.tick_params(length=0)
+    for sp in ax.spines.values():
+        sp.set_visible(False)
+    ax.set_xlabel("Attack onset round")
+    ax.set_ylabel("Mean attacker betweenness (bin)")
+    cb = fig.colorbar(im, pad=0.03)
+    cb.set_label("Elite contamination (mean)")
+    cb.outline.set_linewidth(0.5)
+    S.save(fig, path_m)
 
 
 def fig_scatter(plt, cells: pd.DataFrame, h: dict, path: Path) -> None:
-    fig, ax = plt.subplots(figsize=(4.6, 4.4))
-    for i, s in enumerate(_order(cells.strategy)):
+    from . import figstyle as S
+    fig, ax = plt.subplots(figsize=(S.HALF, 3.0))
+    marks = "osD^vP"
+    seen: dict[str, int] = {}
+    for s in _order(cells.strategy):
+        f = S.family(s)
+        i = seen[f] = seen.get(f, -1) + 1
         g = cells[cells.strategy == s]
-        ax.scatter(g.con_abm, g.con_llm, s=30, color=OKABE[i % 8], marker="os^D"[i // 8 % 4], label=s,
-                   edgecolor="white", linewidth=0.5, zorder=3)
-    ax.plot([0, 1], [0, 1], color="#888888", lw=0.8, ls="--")
+        ax.scatter(g.con_abm, g.con_llm, s=18, color=S.strategy_color(s), marker=marks[i % len(marks)],
+                   label=s, edgecolor="white", linewidth=0.3, zorder=3)
+    ax.plot([0, 1], [0, 1], color=S.GREY, lw=0.7, ls="--", zorder=1)
     ax.set_xlim(-0.02, 1.02)
     ax.set_ylim(-0.02, 1.02)
+    ax.set_aspect("equal")
     ax.set_xlabel("ABM contamination (predicted)")
     ax.set_ylabel("LLM contamination (observed)")
     st = h.get("statistic") or {}
     if st:
-        ax.text(0.02, 0.97, f"ρ={st.get('rho')}  error ABM−LLM={st['signed_error']['mean']}", transform=ax.transAxes,
-                va="top", fontsize=8)
-    ax.legend(fontsize=7, ncol=2, loc="lower right")
-    ax.set_title("Fig 7. ABM vs LLM (matched cells, RQ6)")
-    fig.savefig(path)
-    plt.close(fig)
+        f2 = lambda v: f"{v:.2f}" if isinstance(v, (int, float)) else str(v)
+        ax.text(0.02, 0.98, f"Spearman ρ = {f2(st.get('rho'))}\nmean error ABM − LLM = {f2(st['signed_error']['mean'])}",
+                transform=ax.transAxes, va="top", fontsize=8)
+    ax.legend(ncol=1, loc="center left", bbox_to_anchor=(1.0, 0.5), handletextpad=0.1)
+    S.save(fig, path)
 
 
 # ---------------------------------------------------------------- driver

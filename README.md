@@ -49,6 +49,24 @@ Every LLM call is cached in `.cache/llm.sqlite`, keyed by `sha256(provider, mode
 Every run writes `logs/<run_id>.jsonl`: config, then per agent and round the prompt, prompt hash, raw
 response, parsed output and choice.
 
+## Reproducing the results
+
+Every number in the report can be regenerated from this repository. Three levels of reproduction are available:
+
+| Level | Needs | Command | What it checks |
+|---|---|---|---|
+| 1. Re-analyse | nothing | `python -m hiveguard.run analyze` | figures, hypothesis verdicts and `results/results.json` from the committed run tables |
+| 2. Replay LLM runs | nothing (no API key, no cost) | `python -m hiveguard.run replay <run_id>` | re-executes a logged LLM run against the committed response cache `.cache/llm.sqlite` and checks that the log is **byte-identical** |
+| 3. Re-run | an OpenRouter key | `python scripts/stage_b_pipeline.py` | fresh LLM calls; results vary within the reported CIs because sampling is stochastic |
+
+The ABM results (Stage A, red team) are deterministic given the seed and the frozen parameters in `results/abm_params.json`. To rebuild them, run `python -m hiveguard.run stageA --params results/abm_params.json` and `python -m hiveguard.run search ...`, with the arguments recorded in EXPERIMENT_LOG.md.
+
+The provenance of the results is recorded in these files:
+- `EXPERIMENT_LOG.md`: what was run and when, in time order;
+- `DEVIATIONS.md`: every change to the pre-registered plan;
+- `logs/*.jsonl`: one file per LLM run, holding the config, every prompt, raw reply, parsed output and the result;
+- `results/*.csv`: one row per run.
+
 ## Code map
 
 | File | Contents |

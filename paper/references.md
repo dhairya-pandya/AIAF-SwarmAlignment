@@ -48,6 +48,9 @@ Every entry was checked on 2026-11-09: arXiv IDs against the arXiv API (title ma
 40. Motwani, S. R., Baranchuk, M., Strohmeier, M., Bolina, V., Torr, P. H. S., Hammond, L., & Schroeder de Witt, C. (2024). Secret Collusion among AI Agents: Multi-Agent Deception via Steganography. In *Advances in Neural Information Processing Systems (NeurIPS 2024)*. arXiv:2402.07510. https://arxiv.org/abs/2402.07510
 41. Wolpert, D. H., & Macready, W. G. (1997). No free lunch theorems for optimization. *IEEE Transactions on Evolutionary Computation*, *1*(1), 67–82. https://doi.org/10.1109/4235.585893
 
+51. Wilkinson, G. S. (1984). Reciprocal food sharing in the vampire bat. *Nature*, *308*(5955), 181–184. https://doi.org/10.1038/308181a0
+52. Carter, G. G., & Wilkinson, G. S. (2013). Food sharing in vampire bats: reciprocal help predicts donations more than relatedness or harassment. *Proceedings of the Royal Society B*, *280*(1753), 20122573. https://doi.org/10.1098/rspb.2012.2573
+
 ## Cited only in DESIGN.md §6–§9 tables
 
 42. Sharma, M., Tong, M., Korbak, T., Duvenaud, D., Askell, A., Bowman, S. R., Cheng, N., Durmus, E., Hatfield-Dodds, Z., Johnston, S. R., Kravec, S., Maxwell, T., McCandlish, S., Ndousse, K., Rausch, O., Schiefer, N., Yan, D., Zhang, M., & Perez, E. (2024). Towards Understanding Sycophancy in Language Models. In *International Conference on Learning Representations (ICLR 2024)*. arXiv:2310.13548. https://arxiv.org/abs/2310.13548
@@ -114,6 +117,9 @@ Every entry was checked on 2026-11-09: arXiv IDs against the arXiv API (title ma
 | H2 | 50 | Samvelyan et al. (2024) | no (DESIGN only) | yes | arXiv API title match for 2402.16822; venue confirmed via Semantic Scholar record (venue field) |
 | H5 | 46 | Chan et al. (2024) | no (DESIGN only) | yes | arXiv API title match for 2406.12137 |
 | I1 | 1 | METR (2026) | yes | yes | URL returned HTTP 200 (application/pdf); title, date and investigators read from page 1 of the PDF. |
+
+| C14 | 51 | Wilkinson (1984) | yes | yes | Crossref title match for doi:10.1038/308181a0 |
+| C15 | 52 | Carter & Wilkinson (2013) | yes | yes | Crossref title match for doi:10.1098/rspb.2012.2573 |
 
 ## Notes
 

@@ -1,0 +1,2 @@
+best=S4
+worst=S7

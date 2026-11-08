@@ -1187,8 +1187,8 @@ def plan_document(paper: Paper) -> tuple[list, list[str], list[Block]]:
             cur = rest
             for b in disc_blocks:
                 if b.kind == "h3":
-                    cur = lim_inner if re.search(r"limitation", b.text, re.I) else rest
-                    if cur is lim_inner:
+                    cur = lim_inner if re.search(r"limitation|future", b.text, re.I) else rest
+                    if cur is lim_inner and re.search(r"limitation", b.text, re.I):
                         continue
                 cur.append(b)
             disc_blocks = rest

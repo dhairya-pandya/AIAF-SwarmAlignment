@@ -1,12 +1,16 @@
 .venv/
 __pycache__/
 *.pyc
-.cache/
-results/
-logs/
 .env
 figures/precal/
 figures/abm_preview/
 video/*.mp4
 video/*.srt
 video/build/
+# exploratory or derivable result files (regenerate with the commands in EXPERIMENT_LOG.md)
+results/*precal*
+results/results_abm_preview.json
+results/stageA_with_s11.csv
+results/logs/analyze_precal.log
+results/logs/redteam_precal.log
+results/logs/stageA_precal.log

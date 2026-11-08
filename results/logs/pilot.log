@@ -1,0 +1,19 @@
+15 runs in block, 15 to do, ~270 calls
+[1/15] S0a full f=0.000 A2 none seed=2: acc=1.00 con=0.00 valid=1.00 23.72s  stats={'calls': 79, 'hits': 0, 'errors': 0, 'prompt_tokens': 47332, 'completion_tokens': 36748}
+[2/15] S0a full f=0.000 A2 none seed=0: acc=1.00 con=0.00 valid=1.00 24.06s  stats={'calls': 80, 'hits': 0, 'errors': 0, 'prompt_tokens': 48069, 'completion_tokens': 37215}
+[3/15] S0a full f=0.000 A2 none seed=1: acc=1.00 con=0.00 valid=1.00 24.48s  stats={'calls': 83, 'hits': 0, 'errors': 0, 'prompt_tokens': 49947, 'completion_tokens': 38630}
+[4/15] S4 full f=0.167 A2 none seed=2: acc=0.00 con=0.20 valid=1.00 47.67s  stats={'calls': 170, 'hits': 0, 'errors': 0, 'prompt_tokens': 150073, 'completion_tokens': 109475}
+[5/15] S2 full f=0.167 A2 none seed=1: acc=1.00 con=0.00 valid=1.00 52.85s  stats={'calls': 187, 'hits': 0, 'errors': 0, 'prompt_tokens': 173016, 'completion_tokens': 122879}
+[6/15] S4 full f=0.167 A2 none seed=1: acc=0.20 con=0.40 valid=1.00 55.11s  stats={'calls': 202, 'hits': 0, 'errors': 0, 'prompt_tokens': 188707, 'completion_tokens': 133128}
+[7/15] S4 full f=0.167 A2 none seed=0: acc=0.40 con=0.40 valid=1.00 55.64s  stats={'calls': 203, 'hits': 0, 'errors': 0, 'prompt_tokens': 189520, 'completion_tokens': 133930}
+[8/15] S4 full f=0.000 A2 none seed=2: acc=0.33 con=0.17 valid=1.00 57.55s  stats={'calls': 208, 'hits': 0, 'errors': 0, 'prompt_tokens': 196789, 'completion_tokens': 139137}
+[9/15] S2 full f=0.000 A2 none seed=0: acc=1.00 con=0.00 valid=1.00 61.69s  stats={'calls': 226, 'hits': 0, 'errors': 0, 'prompt_tokens': 220093, 'completion_tokens': 152419}
+[10/15] S2 full f=0.167 A2 none seed=0: acc=0.20 con=0.00 valid=1.00 61.89s  stats={'calls': 227, 'hits': 0, 'errors': 0, 'prompt_tokens': 222032, 'completion_tokens': 152697}
+[11/15] S2 full f=0.167 A2 none seed=2: acc=1.00 con=0.00 valid=1.00 62.05s  stats={'calls': 229, 'hits': 0, 'errors': 0, 'prompt_tokens': 224678, 'completion_tokens': 153671}
+[12/15] S4 full f=0.000 A2 none seed=0: acc=0.33 con=0.33 valid=1.00 62.52s  stats={'calls': 230, 'hits': 0, 'errors': 0, 'prompt_tokens': 225494, 'completion_tokens': 154406}
+[13/15] S2 full f=0.000 A2 none seed=2: acc=0.83 con=0.00 valid=1.00 62.88s  stats={'calls': 231, 'hits': 0, 'errors': 0, 'prompt_tokens': 227091, 'completion_tokens': 155518}
+[14/15] S4 full f=0.000 A2 none seed=1: acc=0.33 con=0.17 valid=1.00 63.93s  stats={'calls': 235, 'hits': 0, 'errors': 0, 'prompt_tokens': 231998, 'completion_tokens': 158969}
+[15/15] S2 full f=0.000 A2 none seed=1: acc=1.00 con=0.00 valid=1.00 70.08s  stats={'calls': 240, 'hits': 0, 'errors': 0, 'prompt_tokens': 240494, 'completion_tokens': 163257}
+
+Pilot go criteria (DESIGN §10.1):
+  openrouter:openai/gpt-oss-120b: valid=1.000 (>=0.98 OK), S2 acc@f=0=0.94 (0.6-0.9 TUNE MARGIN), refusal=0.000 (<0.02 OK), throughput=18 calls/min

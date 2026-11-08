@@ -1,0 +1,22 @@
+id   source      verdict               p   p_holm  note
+H0   ABM         supported        0.0001        –   Supported if CI includes 0 or is below 0 at every f.
+H0   LLM         supported        0.2307        –   Supported if CI includes 0 or is below 0 at every f.
+H1   ABM         supported        0.0001   0.0005  D8: evaluated on S2,S3,S6,S8; threshold ≥5/7 share. p = per-strategy p ranked 3 
+H1   LLM         not supported    0.0917   0.4585  D8: evaluated on S2,S3; threshold ≥5/7 share. p = per-strategy p ranked 2 of 2.
+H2   ABM         not supported         –        –  Sharp = f* inside the f grid and width ≤ 0.15; supported if >50% of cells are sh
+H2   LLM         not supported         –        –  DESIGN only asks to report f* against the band; verdict = majority of point f* i
+H3   ABM         inconclusive      0.048    0.096  6 modules compared (DESIGN: 6). p = 1 − P(M3 first). Criterion met but not signi
+H3   LLM         inconclusive      0.169    0.676  5 modules compared (DESIGN: 6). p = 1 − P(M3 first).
+H4   ABM         not supported    0.0001   0.0005  p = max of the two (intersection-union).
+H4   LLM         not supported    0.5849      1.0  p = max of the two (intersection-union).
+H5   ABM vs LLM  inconclusive     0.7831      1.0  strategies S4,S7.
+H6   ABM vs LLM  not supported    0.0001   0.0007  ranking unit: strategy×topology (LLM topologies: ['full', 'ring']); error CI ove
+H7   ABM         not supported    0.1431   0.1431  statistic = [mean, lo, hi]; p = max of the two.
+H7   LLM         not supported     0.006    0.036  
+H8   ABM         not run               –        –  A5 contamination for S7 and ≥1 other Tier-1 strategy is missing
+H8   LLM         not run               –        –  A5 contamination for S7 and ≥1 other Tier-1 strategy is missing
+H9   ABM         inconclusive          –        –  Rank criterion (no p; outside Holm). Supported needs S4/S9 CIs above the 3rd-ran
+H9   LLM         not supported         –        –  Rank criterion (no p; outside Holm). Supported needs S4/S9 CIs above the 3rd-ran
+H10  ABM         inconclusive     0.0189   0.0567  result distance = RMS difference of Con profiles over shared (topology, N, f>0) 
+H10  LLM         not supported    0.4055      1.0  result distance = RMS difference of Con profiles over shared (topology, N, f>0) 
+-> results/results.json, figures in figures/

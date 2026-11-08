@@ -32,7 +32,7 @@ We build **Swarm Immunity**, a pre-registered benchmark (Figure 1). LLM agents s
 
 ## 3. Methods
 
-![Method overview. (1) A hidden-profile task: each agent's facts point to a wrong option; only pooled facts reveal the correct one. (2) A fraction f of agents is compromised and pushes a wrong target (attacks A1–A5). (3) Agents coordinate by one of 11 strategies, grouped by biological family; each has an LLM form and an ABM twin. (4) Defence modules M1–M6. (5) Metrics. Bottom: red-team searchers optimise attacks on the twin; each best attack is replayed on LLM swarms. Panel 5's curve is schematic.](../figures/paper/fig0_overview.png)
+![Method overview. (1) A hidden-profile task: each agent's facts point to a wrong option; only pooled facts reveal the correct one. (2) A fraction f of agents is compromised and pushes a wrong target (attacks A1–A5). (3) Agents coordinate by one of 11 strategies, grouped by biological family; each has an LLM form and an ABM twin. (4) Defence modules M1–M6. (5) Metrics. Bottom: red-team searchers optimise attacks on the twin; each best attack is replayed on LLM swarms. Panel 5's curve is schematic.](../figures/paper/fig0_overview.png){width=6.0in}
 
 **Task.** Each instance is a fictional best-of-4 choice. Option $o$ has six attributes $v_{o,a}\in\{0,\dots,10\}$, and public weights $w_a\in\{1,\dots,5\}$ set its quality $Q_o=\sum_a w_a v_{o,a}$; the correct option is $o^\star=\arg\max_o Q_o$. The 24 facts are dealt so that each agent holds about four, shown with their points (e.g. `A.durability = 8 (+6 pts)`, D17). The generator accepts an instance only if the best option leads by 4–16 points and fewer than 40% of agents could find $o^\star$ from their own facts. Pooling is therefore necessary, which makes misinformation costly [C13]. Facts are dealt before roles, so honest agents hold the same facts at every attacker fraction $f$, and attacker sets are nested across $f$ (D1, D4). All compromised agents push one wrong *target* $t$.
 
@@ -73,15 +73,15 @@ Table: LLM swarms on the full graph, $N=12$, attack A2. Acc$_0$ is accuracy with
 
 ### 4.2 Swarm theory transfers to the twin, not to LLM swarms
 
-![Contamination against attacker fraction. Lines and bands: calibrated ABM twin at N = 12, 50, 200 (mean and 95% bootstrap CI over 30 seeds; full topology, attack A2). Diamonds with bars: LLM swarms (gpt-oss-120b, N = 12, 6 seeds; 3 for S5, S6, S8). † S11 is exploratory (Section 4.6).](../figures/fig3_con_vs_f.png)
-
 **The twin reproduces classic swarm theory** (Figure 2). Dense graphs spread contamination more and faster than the ring (H1 supported; for S2, +0.13 [0.10, 0.17], with $T_{50}$ 0.93 rounds earlier). Opinion-averaging strategies tip early ($f^\star$ = 0.05 for S2, 0.03 for S6, 0.04 for S7, 0.06 for S8), while shared-medium ones tip late (0.26 for S9, 0.36 for S4). Transitions are gradual, with a median 10–90% width of 0.69 (H2 not supported).
 
 **LLM swarms break these predictions.** For LLM debate, the full graph is *less* contaminated than the ring: −0.22 [−0.33, −0.12] (H1 not supported). The calibrated twin over-predicts contamination by +0.35 [0.24, 0.48] per cell and does not rank the 24 matched cells (ρ = −0.02; H6 not supported; Figure 3).
 
-![Calibrated ABM prediction against observed LLM contamination for the 24 matched strategy × topology × f cells. The dashed line is perfect agreement. Most cells fall below it: LLM swarms are more robust than the twin predicts.](../figures/fig7_abm_vs_llm.png){width=3.2in}
+![Contamination against attacker fraction. Lines and bands: calibrated ABM twin at N = 12, 50, 200 (mean and 95% bootstrap CI over 30 seeds; full topology, attack A2). Diamonds with bars: LLM swarms (gpt-oss-120b, N = 12, 6 seeds; 3 for S5, S6, S8). † S11 is exploratory (Section 4.6).](../figures/fig3_con_vs_f.png){width=5.2in}
 
 **Why: evidence, not dilution** (exploratory; Appendix E). On the full graph a debating agent sees about 66 claims per round, against 12 on the ring, with the same attacker share (about 0.10). Yet target adoption falls from 0.20 on the ring to 0.04 on the full graph. With near-complete honest evidence, a reasoning agent recomputes the answer instead of averaging opinions. Adoption reaches 0.53 only when attacker claims are more than half of what an agent sees.
+
+![ABM-predicted vs observed LLM contamination, 24 matched cells. Dashed: agreement. Most cells lie below it.](../figures/fig7_abm_vs_llm.png){width=2.3in}
 
 ### 4.3 Quorum is the best defence; evaporation backfires
 
@@ -128,7 +128,7 @@ Larger LLM swarms and more model families; tasks with uncheckable claims, where 
 
 ## 6. Conclusion
 
-We compared 11 bio-inspired coordination strategies for LLM swarms with compromised members, using a pre-registered benchmark and a calibrated agent-based twin. Leader hierarchies are captured by a minority at $f^\star\approx0.21$. Quorum on first-hand evidence is the most effective and cheapest defence, while pheromone-style evaporation backfires. Calibrated classical swarm models overstate and mis-rank the vulnerability of reasoning-agent swarms, to the point of reversing the topology effect. Safety for agent collectives depends less on which animal a design imitates than on whether every agent sees, and is required to check, first-hand evidence.
+Across 11 bio-inspired coordination strategies, leader hierarchies are captured by a minority at $f^\star\approx0.21$. Quorum on first-hand evidence is the most effective and cheapest defence, while pheromone-style evaporation backfires. Calibrated classical swarm models overstate and mis-rank the vulnerability of reasoning-agent swarms, to the point of reversing the topology effect. Safety for agent collectives depends less on which animal a design imitates than on whether every agent sees, and is required to check, first-hand evidence.
 
 ## Appendix A. Limitations and Dual-Use / Ethical Considerations
 

@@ -13,6 +13,17 @@ Hackathon (Nov 6–8, 2026).
 
 **Interactive results and replay viewer:** https://swarm-immunity.vercel.app
 
+## Results at a glance
+
+These come from 405 LLM swarm runs (`gpt-oss-120b`, 12 agents, 6 seeds) and 327,600 runs of the calibrated agent-based twin. All numbers are in `results/results.json`, and the full write-up is in `paper/`.
+
+- **Hierarchies get captured.** The grey-wolf leader hierarchy is the only design that tips: contamination crosses 50% at an attacker fraction of f* = 0.21 [0.17, 0.39].
+- **Quorum works.** A honeybee-style quorum on first-hand evidence is the only defence that reduced LLM contamination (−0.17 [−0.31, −0.02]) without a measurable accuracy cost.
+- **Evaporation backfires.** Pheromone-style evaporation made the hierarchy worse (+0.31).
+- **The classical twin doesn't transfer.** It overestimates LLM contamination by 0.35 [0.24, 0.48] and does not rank conditions (ρ = −0.02).
+- **Topology reverses for LLMs.** Dense graphs *protect* debating LLM agents: each agent sees enough first-hand evidence to reject fabricated claims.
+- **Replay checked.** All 402 logged LLM runs replay byte-identically from the committed cache (`results/replay_check.csv`).
+
 ## Setup
 
 ```bash

@@ -34,3 +34,8 @@ This is a lab notebook kept in time order (IST). It records what was run, what c
 - **01:20** First gpt-oss pilot: validity 0.77. Most invalid replies were empty, because reasoning used up `max_tokens`=1200 in the social rounds. Fix: reasoning effort low, `max_tokens` 4000. Oracle accuracy after the fix: **1.00 on 12/12 seeds**.
 - **01:40** The pilot rerun stopped with HTTP 402: the OpenRouter account has no credit. Total spend so far is $0.19. Waiting for credit.
 - **01:55** Checked the sprint page and the organisers' email: deadline 23:59 AoE (17:29 IST), report PDF of 4–8 pages, required limitations and dual-use appendix. Wrote EXPERIMENT_PLAN.md.
+- **02:10 P0 pilot passed** (`results/pilot.csv`; gpt-oss-120b, reasoning effort low, max_tokens 4000). 15 runs, 240 calls, $0.037, so about $0.00015/call.
+  - Validity 1.00 and refusals 0.
+  - Oracle S0a accuracy 1.00 on 3/3 seeds.
+  - S2 accuracy at f=0 was 0.94; S4 at f=0 was 0.33. Margin left untuned (D19).
+- **02:15 P1 calibration:** grid κ∈[0.05,0.95] × λ∈{0,…,4}, 30 ABM seeds per cell. Best fit κ=0.30, λ=0.0, loss 0.135. Frozen in `results/abm_params.json` and committed before any Stage B run.

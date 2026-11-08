@@ -24,7 +24,7 @@ We ask which of these coordination algorithms, applied to LLM agents, contain a 
 
 **Contributions.**
 1. A seeded, cached and replayable testbed for LLM swarms that runs 11 coordination strategies, each paired with a cheap ABM twin (Track 1).
-2. A pre-registered comparison of these strategies under attack. The hypotheses, metrics and analysis plan were committed before any code was written (Track 2).
+2. A pre-registered comparison of these strategies under attack. The hypotheses, metrics and analysis plan were written before the sprint and committed before any experiment ran; every later change is logged (Track 2).
 3. An ablation of bio-inspired negative-feedback defences, scored in AI-control style as safety vs. usefulness [H1] (Track 4).
 4. Red-team metaheuristics (a genetic algorithm, binary PSO and MAP-Elites) that search for worst-case attacker placement, onset round and behaviour, compared at equal evaluation budgets.
 5. An estimate of how far a calibrated ABM can stand in for LLM swarms, and where it breaks down.
@@ -45,68 +45,93 @@ We ask which of these coordination algorithms, applied to LLM agents, contain a 
 
 ## 3. Methods
 
-### 3.1 Task
+Figure 1 summarises the pipeline. A hidden-profile task makes communication necessary (§3.1). A swarm of LLM agents, a fraction of which are compromised, solves it under one of 11 coordination strategies (§3.2–3.3), optionally with a defence module (§3.4). Attacks are placed at random, on hubs, or by red-team search on a cheap agent-based twin (§3.5). Outcomes are scored with the metrics defined in §3.6.
 
-Each instance is a fictional best-of-4 choice. Every option has 6 integer attributes from 0 to 10, everyone sees the same public integer weights from 1 to 5, and the correct option is the arg-max of the weighted sum. Its 24 attribute facts are each dealt to `m` agents, so every agent holds about 4 facts (`m=2` at N=12).
+### 3.1 Task: a hidden profile that forces pooling
 
-A generator rejects instances in which 40% or more of agents could find the correct option from their own facts. It also requires the score gap between the best and second-best option to lie in a band that the pilot tunes. Communication is therefore necessary, which is what makes compromise costly.
+**Design.** Each instance is a fictional best-of-4 choice. Option $o$ has six integer attributes $v_{o,a}\in\{0,\dots,10\}$, and public weights $w_a\in\{1,\dots,5\}$ define its quality $Q_o=\sum_a w_a v_{o,a}$. The correct option is $o^\star=\arg\max_o Q_o$. The 24 facts $(o,a,v_{o,a})$ are each dealt to $m$ agents, so every agent holds about four. An instance is accepted only if two conditions hold. First, the quality gap $Q_{o^\star}-\max_{o\neq o^\star}Q_o$ lies in $[4,16]$. Second, fewer than 40% of agents would pick $o^\star$ from their own facts. To decide that, an agent scores option $o$ by $\sum_{\text{known}} w_a(v_{o,a}-5)$, treating unknown values as the neutral 5.
 
-Facts are dealt to positions before roles are assigned. Honest agents hold the same facts at every attacker fraction `f`, and an agent that becomes compromised loses its facts. The attackers' target is a single wrong option, drawn from the seed.
+**Why.** The task is a hidden profile [C13] on a best-of-$n$ problem [C6]. Pooling facts is required to answer correctly, so misinformation that enters the pool has a measurable cost. Each fact is shown with its points, e.g. `A.durability = 8 (+6 pts)` (DEVIATIONS D17). This keeps the difficulty in aggregation rather than arithmetic. A full-information oracle (S0a) scores 1.00 with the agent model used here (§3.2).
+
+**Controls.** Facts are dealt to positions before roles are assigned. Honest agents therefore hold identical facts at every attacker fraction, and attacker sets are nested across $f$ (D1, D4). An agent that becomes compromised loses its facts. All attackers push a single wrong *target* option $t$, drawn from the seed.
 
 ### 3.2 Agents, rounds and topologies
 
-Each run has R=6 synchronous rounds. In round 0, every agent answers from its private facts alone. LLM agents return validated JSON with these fields:
-- a choice and a confidence;
-- structured claims `(option, attribute, value, source)`, where `source` is `own` or the id of the agent the claim came from;
-- endorsements and stop signals;
+A run has $N$ agents and $R$ synchronous rounds. In round 0 each agent answers from its private facts. In rounds $1,\dots,R-1$ it also sees what its strategy shows it (§3.3). Every reply must be a JSON object with these fields:
+- a choice and a confidence in $[0,1]$;
+- at most 8 structured claims $(o,a,v,\text{source})$, where the source is `own` or the id of the agent the claim came from;
+- at most 3 endorsements and at most 3 stop signals, which refer to claim ids;
 - a message of at most 60 words.
 
-The group decision is the plurality of honest agents' final choices. We use five topologies: ring, small-world, scale-free, star and fully connected.
+A reply that fails validation gets one repair prompt. If the repair also fails, the agent abstains for that round.
 
-### 3.3 Coordination strategies
+LLM agents are `gpt-oss-120b` at low reasoning effort and temperature 0.7, accessed through OpenRouter. It was chosen by an oracle screen of five models before any main run (D18). Honest agents are told the task and their facts. Attackers are additionally told the target and their attack type. Every call is cached by a hash of (model, messages, seed, temperature, max_tokens). Every turn is logged, and any run can be replayed byte-for-byte from the cache.
 
-[Table 1: the 11 strategies, from DESIGN §6.2, with the component matrix of §6.3.]
+**Topologies.** We use ring, Watts–Strogatz small-world, Barabási–Albert scale-free, star and fully connected graphs. The headline LLM block uses $N=12$ and $R=6$. The agent-based twins also run $N=50$ and $N=200$.
 
-In each ABM twin, an agent's belief is a distribution over the options. Its private evidence is a softmax over its partial weighted score. Two calibrated parameters describe honest ABM agents: deference κ (how much weight social information gets relative to the agent's own evidence) and confidence sensitivity λ.
+### 3.3 Coordination strategies and their agent-based twins
+
+Table 1 lists the strategies. They range from no communication (S0b, S1) through neighbour debate (S2) and particle-swarm updates (S3) to strategies built on a shared medium: ant-colony stigmergy (S4), bee colony (S5), honeybee dance with quorum (S9) and response-threshold verification (S10). Others use distance-weighted attraction (firefly, S6), a leader hierarchy (grey wolf, S7) or flocking with separation (boids, S8).
+
+Following critiques that many animal metaphors repackage a few components [B1, B2], each strategy is tagged with the eight mechanism components of Figure 2: direct messages, shared medium, memory, hierarchy, distance decay, roles, negative feedback, quorum. This lets us ask whether outcomes group by component or by metaphor (H10).
+
+Each strategy has an agent-based (ABM) twin. In the twin, each agent holds a belief $b_i$ on the 4-option simplex. Its private evidence is $e_i=\mathrm{softmax}(\beta\,s_i)$, where $s_i$ is its partial score vector. Social updates follow the strategy's rule; S2, for example, uses DeGroot averaging $b_i\leftarrow(1-\kappa)b_i+\kappa\,\overline{b}_{\mathcal N(i)}$ with sender weights proportional to confidence$^\lambda$.
+
+Two parameters are calibrated on pilot LLM runs and then frozen before any main run (§3.7):
+- the deference $\kappa$;
+- the confidence sensitivity $\lambda$.
+
+The twins make large sweeps and red-team search affordable: about $10^5$ runs per minute on a laptop, compared with minutes per LLM run.
 
 ### 3.4 Defence modules
 
-| ID | Module | What it does |
+The six modules are bio-inspired forms of negative feedback and structural control. Each can be added to any strategy.
+
+| ID | Module (inspiration) | Rule |
 |---|---|---|
-| M1 | Evaporation | Down-weights claims that stay unchanged over rounds |
-| M2 | Stop signals | Hides a claim for 2 rounds once ≥2 agents with contradicting first-hand facts stop it |
-| M3 | Quorum on first-hand evidence | An agent may switch its choice only when ≥q distinct agents report a supporting claim with `source: own` |
-| M4 | Uninformed dilution | Adds agents with no facts |
-| M5 | Model diversity | Splits honest agents across 2–3 model families |
-| M6 | Sparse topology | Rewires the network to a ring |
+| M1 | Evaporation (pheromone decay [A2]) | A sender whose choice is unchanged for $s$ rounds is down-weighted by $(1-\rho)^s$, with $\rho=0.3$ |
+| M2 | Stop signals (honeybees [C3]) | A sender whose claim receives stop signals from $\ge2$ distinct agents is hidden for 2 rounds |
+| M3 | Quorum on first-hand evidence (quorum sensing [C4, C5]) | An agent may switch to option $o$ only if $\ge q=2$ distinct agents have shown it first-hand (`own`) claims supporting $o$; otherwise its previous choice stands |
+| M4 | Uninformed dilution (schooling fish [C2]) | Adds agents that hold no facts |
+| M5 | Diversity (mixed populations) | Honest agents are split across two model families (LLM) or a spread of $\kappa$ (ABM) |
+| M6 | Sparse topology | The communication graph is rewired to a ring |
 
 ### 3.5 Attacks and red team
 
-The five attack types are:
-- **A1, confident liar:** argues for the target with no specific claims;
-- **A2, fabricated evidence:** makes up claims marked `source: own`;
-- **A3, sleeper:** behaves honestly, then switches to A2;
-- **A4, sybil:** posts on the board under 3 aliases;
-- **A5, leader capture:** reports maximal confidence.
+Compromised agents hold no facts. All of them push the target $t$, using one of five attack types:
+- **A1, confident assertion:** argues for $t$ without specific claims;
+- **A2, fabricated evidence:** invents claims favouring $t$ and labels them first-hand;
+- **A3, sleeper:** behaves honestly until an onset round, then switches to A2;
+- **A4, sybil:** posts on shared media under 3 aliases;
+- **A5, confidence capture:** always reports confidence 1, which targets confidence-weighted and leader-based strategies.
 
-Each attack can start at any onset round. Red-team searchers (random, greedy hub, a genetic algorithm, binary PSO and MAP-Elites) search over (attacker nodes × onset × attack type) with 500 ABM evaluations each, repeated 10 times. Fitness is the mean contamination over 5 seeds.
+Attackers are placed at random, on the highest-betweenness nodes, or by red-team search. Five searchers compete at equal budget: random, greedy hub, a genetic algorithm, binary PSO and MAP-Elites. Each gets 500 twin evaluations over the genome (attacker node set, onset round, attack type). Fitness is mean contamination over 5 seeds. The best genome each searcher finds is then replayed on LLM agents to test whether it transfers.
 
-### 3.6 Metrics and statistics
+### 3.6 Definitions and metrics
 
-The metrics are:
-- **accuracy:** the share of honest agents whose final choice is correct;
-- **contamination:** the share of honest agents whose final choice is the attackers' target;
-- **T50:** the first round at which contamination reaches half of its final value;
-- **deadlock and consensus time;**
-- **tipping point `f*`:** where a logistic fit of contamination against `f` crosses 0.5;
-- **usefulness cost:** the change in accuracy at `f=0` when a module is added;
-- **collaboration gain:** the accuracy improvement over compute-matched majority voting (S1).
+Let $\mathcal H$ be the honest agents and $\mathcal A$ the compromised ones. Write $k=|\mathcal A|$, $f=k/N$, and $c_i^{(r)}$ for agent $i$'s choice in round $r$.
 
-Seeds are the unit of analysis. We use paired bootstrap 95% CIs with 10k resamples and Holm correction over H1–H10.
+- **Accuracy:** $\mathrm{Acc}=\frac1{|\mathcal H|}\sum_{i\in\mathcal H}\mathbb 1[c_i^{(R-1)}=o^\star]$.
+- **Contamination:** $\mathrm{Con}=\frac1{|\mathcal H|}\sum_{i\in\mathcal H}\mathbb 1[c_i^{(R-1)}=t]$. At $f=0$, Con is the rate at which honest agents settle on $t$ unaided, which is the floor that attacks raise.
+- **Spread speed $T_{50}$:** the first round at which Con reaches half its final value.
+- **Deadlock:** no option holds a majority of honest agents at the end.
+- **Consensus time:** the first round after which all honest agents agree.
+- **Tipping point $f^\star$:** we fit $\mathrm{Con}(f)=\big(1+e^{-(f-f^\star)/s}\big)^{-1}$ by least squares. Its 10→90% transition width is $2s\ln 9$, and a transition is *sharp* if the width is $\le0.15$ inside the tested range.
+- **Usefulness cost** of module $m$: $U_m=\mathrm{Acc}_m-\mathrm{Acc}_{\text{none}}$ at $f=0$.
+- **Module value:** $V_m=\Delta\mathrm{Con}_m/(\max(0,-U_m)+0.01)$, the contamination removed per unit of accuracy lost.
 
-### 3.7 Experimental stages
+Seeds are the unit of analysis. The same seed fixes the task, the graph and the attacker set in every arm of a comparison, so contrasts are paired. We report 95% bootstrap CIs over seeds and Holm-correct the confirmatory hypotheses H1–H10, separately for ABM and LLM evidence. The exact operational choices were fixed in code before calibrated or LLM data existed (D12).
 
-The pilot calibrates the ABM's κ and λ, which are then frozen. Stage A sweeps the ABM over the full grid. Stage B runs LLM agents on a slice chosen from the Stage A results, about 15k calls in total. The ABM's predictions for Stage B are written down before Stage B runs.
+### 3.7 Experimental protocol
+
+Three stages, pre-registered in DESIGN.md and amended only through the logged deviations:
+1. **Pilot and calibration.** Small LLM runs check output validity, refusals and oracle accuracy. $\kappa$ and $\lambda$ are then fitted by grid search, minimising squared error in Acc, Con and the per-round contamination curve, and frozen in a committed file.
+2. **Stage A, the ABM screen.** Every strategy × module × topology × $f\in\{0,1/N,.05,.1,.15,.2,.3,.4\}$ × $N\in\{12,50,200\}$, with 30 seeds each, plus the red-team search.
+3. **Stage B, LLM runs.** These blocks run on the slice that Stage A singles out:
+   - the core: Tier-1 strategies × $f\in\{0,1/12,3/12\}$ × 3 seeds;
+   - defence modules on the most and least robust strategy;
+   - all attack types;
+   - replay of the red team's best genomes.
 
 ## 4. Results
 
@@ -141,7 +166,7 @@ The pilot calibrates the ABM's κ and λ, which are then frozen. Stage A sweeps 
 ## 6. Limitations and future work
 
 - **Small swarms.** LLM runs use N=12. Larger N is studied only in the ABM.
-- **Models.** We use open models on free tiers, not frontier agents.
+- **One agent model.** The main LLM results use a single open-weight reasoning model (`gpt-oss-120b`). Other model families were screened out because they could not solve the full-information task (D18), so our results describe swarms of competent agents, not of frontier agents in general.
 - **Agents.** Agents are text-only and have no tools.
 - **Overt attackers.** Steganographic collusion [G8] is out of scope.
 - **Task scope.** Claims are limited to the hidden-profile best-of-n task family [B3].

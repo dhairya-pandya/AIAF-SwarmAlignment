@@ -26,7 +26,7 @@ class Provider:
 
 PROVIDERS = {
     "nvidia": Provider("nvidia", "https://integrate.api.nvidia.com/v1", "NVIDIA_API_KEY", 40),
-    "openrouter": Provider("openrouter", "https://openrouter.ai/api/v1", "OPENROUTER_API_KEY", 20),
+    "openrouter": Provider("openrouter", "https://openrouter.ai/api/v1", "OPENROUTER_API_KEY", 240),
     "ollama": Provider("ollama", "http://localhost:11434/v1", None, 600),
     "mock": Provider("mock", None, None, 1e9),
 }

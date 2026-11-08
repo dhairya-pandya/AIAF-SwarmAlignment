@@ -57,3 +57,10 @@ This is a lab notebook kept in time order (IST). It records what was run, what c
   - added a budget guard: stop before any block once spend exceeds $9.30;
   - cut the optional Tier-2 block to 3 seeds.
   - The pipeline was restarted. Completed calls are cached, so no work was lost.
+- **02:57 P2 core done** (6 seeds, 168 runs, `results/stageB_core.csv`; spend $2.68). Selection rule: best = **S4** (con at f=3/12 0.17), worst = **S7** (0.61).
+  - Ranking by contamination at f=3/12: S4 0.17, S2 0.19, S9 0.24, S3 0.30, S7 0.61.
+  - First observations from cell means, not yet tested:
+    - **LLM debate (S2) on the full graph shows no contamination at f=3/12 (0.00, acc 0.67), but 0.39 on the ring.** That is the opposite of the ABM and of H1's dense-is-worse prediction.
+    - The grey-wolf hierarchy (S7) is captured (0.61).
+    - Stigmergy (S4) is the safest but least useful (acc at f=0 is 0.43, vs 0.69 for S2).
+  - P3 modules block started on S4 and S7.

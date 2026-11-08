@@ -14,6 +14,7 @@ from pathlib import Path
 import pandas as pd
 
 MODEL = "openrouter:openai/gpt-oss-120b"
+M5_MODELS = [MODEL, "openrouter:minimax/minimax-m3.1-flash", "openrouter:qwen/qwen3.6-35b-a3b"]
 SEEDS = 6
 PY = [sys.executable, "-u", "-m", "hiveguard.run", "stageB", "--models", MODEL, "--workers", "12",
       "--parallel-runs", "8"]
@@ -34,12 +35,23 @@ def best_worst(core_csv: str) -> tuple[str, str]:
     return rank.index[0], rank.index[-1]
 
 
+def run_m5(best: str, worst: str) -> None:
+    """M5: honest agents split across three model families; compared with the single-model core runs."""
+    from hiveguard.config import RunConfig
+    from hiveguard.llm_runs import run_block
+    print(f"\n=== M5 diversity [{time.strftime('%H:%M:%S')}]", flush=True)
+    cfgs = [RunConfig(strategy=s, f=f, modules=["M5"], seed=seed, backend="llm", models=M5_MODELS)
+            for s in (best, worst) for f in (0.0, 3 / 12) for seed in range(SEEDS)]
+    run_block(cfgs, "results/stageB_m5.csv", ".cache/llm.sqlite", "logs", 12, 8)
+
+
 def main() -> None:
     run("core", "results/stageB_core.csv")
     best, worst = best_worst("results/stageB_core.csv")
     Path("results/stageB_selection.txt").write_text(f"best={best}\nworst={worst}\n")
     print(f"best={best} worst={worst}", flush=True)
     run("modules", "results/stageB_modules.csv", "--strategies", best, worst)
+    run_m5(best, worst)
     run("attacks", "results/stageB_attacks.csv", "--strategies", best)
     for f in ["results/redteam_k1.json"]:
         while not Path(f).exists():   # the ABM red-team search may still be running

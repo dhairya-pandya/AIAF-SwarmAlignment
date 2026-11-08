@@ -42,3 +42,6 @@ This is a lab notebook kept in time order (IST). It records what was run, what c
 - **02:07 P2 core block launched:** 84 runs, about 6k calls, `results/stageB_core.csv`, 8 runs in parallel.
   - P1 ABM jobs launched at the same time with the frozen params: Stage A (`results/stageA.csv`), then red-team search at k=1 and k=2 over S2/S3/S4/S7/S9 × scale-free/small-world (`results/redteam_k{1,2}.json`).
   - The red-team k was reduced from 3 because k=3 saturated at contamination 1.0 in the uncalibrated screen.
+- **02:25 M5 model screen** (oracle S0a, N=3, 12 seeds, reasoning effort low): minimax-m3.1-flash 1.00, nemotron-3-super-120b 1.00, glm-5.3-flash 0.97, qwen3.6-35b-a3b 0.97. Chose gpt-oss-120b + minimax + qwen for M5 (D21).
+  - Throughput in the core block is about 230 calls/min, so Stage B was extended to 6 seeds (D20).
+  - Remaining blocks are chained in `scripts/stage_b_pipeline.py`.

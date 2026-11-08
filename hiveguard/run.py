@@ -87,8 +87,9 @@ def main(argv=None) -> None:
 
     p = sub.add_parser("analyze", help="figures, hypothesis verdicts and results JSON (missing inputs are skipped)")
     p.add_argument("--stageA", default="results/stageA.csv")
-    p.add_argument("--redteam", default="results/redteam.json")
-    p.add_argument("--llm", nargs="*", default=["results/stageB.csv"], help="Stage B CSV(s)")
+    p.add_argument("--redteam", default="results/redteam_k1.json")
+    p.add_argument("--llm", nargs="*", default=sorted(str(x) for x in Path("results").glob("stageB_*.csv")),
+                   help="Stage B CSV(s) (default: every results/stageB_*.csv)")
     p.add_argument("--pilot", default="results/pilot.csv")
     p.add_argument("--params", default="results/abm_params.json")
     p.add_argument("--out", default="results/results.json")

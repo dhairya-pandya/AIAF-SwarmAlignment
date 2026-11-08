@@ -47,6 +47,8 @@ We ask which of these coordination algorithms, applied to LLM agents, contain a 
 
 ## 3. Methods
 
+![Method overview. (1) A hidden-profile task: each agent's own facts point to a wrong option, and only the pooled facts reveal the correct one. (2) A fraction f of agents is compromised and pushes one wrong target option using attack type A1–A5. (3) Agents coordinate with one of 11 strategies, grouped by the family of the strategy's biological inspiration. Each strategy has an LLM form and an agent-based (ABM) twin. (4) Optional defence modules M1–M6. (5) Metrics: honest accuracy (Acc), contamination (Con, the share of honest agents ending on the target), tipping point f* and spread speed T50. Bottom: the red-team searchers propose attacker placements, onsets and types, scored on the calibrated ABM twin. Each searcher's best attack is replayed on LLM swarms (transfer check). The tipping curve in panel 5 is schematic.](../figures/paper/fig0_overview.png)
+
 Figure 1 summarises the pipeline. A hidden-profile task makes communication necessary (§3.1). A swarm of LLM agents, a fraction of which are compromised, solves it under one of 11 coordination strategies (§3.2–3.3), optionally with a defence module (§3.4). Attacks are placed at random, on hubs, or by red-team search on a cheap agent-based twin (§3.5). Outcomes are scored with the metrics defined in §3.6.
 
 ### 3.1 Task: a hidden profile that forces pooling
@@ -73,9 +75,27 @@ LLM agents are `gpt-oss-120b` at low reasoning effort and temperature 0.7, acces
 
 ### 3.3 Coordination strategies and their agent-based twins
 
+Table: Coordination strategies. Tier 1 strategies run in the core LLM block; Tier 2/3 run in the ABM screen and an optional LLM block. Every strategy uses the same rounds, facts and output schema; only what an agent sees and how it is told to update differ.
+
+| ID | Strategy | Inspiration | What an agent sees in a social round |
+|---|---|---|---|
+| S0a / S0b | Oracle / solo | baselines | all facts / own facts only |
+| S1 | Independent vote | wisdom of crowds | own facts; R independent samples, group majority |
+| S2 | Neighbour debate | DeGroot averaging | neighbours' last choices, messages and claims |
+| S3 | Particle swarm (PSO) | bird flocking, abstracted | own previous answer, personal best, neighbourhood best |
+| S4 | Stigmergy (ACO) | ant pheromone trails | posts sampled from a shared board ∝ endorsements; no direct messages |
+| S5 | Artificial bee colony | foraging bees | claims weighted by first-hand corroboration; stale claims abandoned by scouts |
+| S6 | Firefly | firefly attraction | neighbours within 2 hops, weighted by distance-decayed brightness |
+| S7 | Grey wolf hierarchy | wolf pack | messages of the round's three most confident agents (leaders) |
+| S8 | Boids | flocking | neighbours' messages; a separation rule keeps a dissenting view when >80% agree |
+| S9 | Waggle dance + quorum | honeybee nest-site choice | dances on a board with strength; stop signals; commit only at quorum |
+| S10 | Response-threshold roles | division of labour | board claims; agents become verifiers with probability rising with unverified claims |
+
 Table 1 lists the strategies. They range from no communication (S0b, S1) through neighbour debate (S2) and particle-swarm updates (S3) to strategies built on a shared medium: ant-colony stigmergy (S4), bee colony (S5), honeybee dance with quorum (S9) and response-threshold verification (S10). Others use distance-weighted attraction (firefly, S6), a leader hierarchy (grey wolf, S7) or flocking with separation (boids, S8).
 
 Following critiques that many animal metaphors repackage a few components [B1, B2], each strategy is tagged with the eight mechanism components of Figure 2: direct messages, shared medium, memory, hierarchy, distance decay, roles, negative feedback, quorum. This lets us ask whether outcomes group by component or by metaphor (H10).
+
+![Mechanism components of each strategy (filled = present), grouped by metaphor family. H10 tests whether strategies with similar components, rather than similar animals, show similar vulnerability profiles. S0a/S0b are baselines outside the H10 comparison.](../figures/paper/fig_strategy_components.png){width=3.2in}
 
 Each strategy has an agent-based (ABM) twin. In the twin, each agent holds a belief $b_i$ on the 4-option simplex. Its private evidence is $e_i=\mathrm{softmax}(\beta\,s_i)$, where $s_i$ is its partial score vector. Social updates follow the strategy's rule; S2, for example, uses DeGroot averaging $b_i\leftarrow(1-\kappa)b_i+\kappa\,\overline{b}_{\mathcal N(i)}$ with sender weights proportional to confidence$^\lambda$.
 

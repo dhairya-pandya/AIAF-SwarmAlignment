@@ -26,12 +26,12 @@ CASCADE = dict(strategy="S2", topology="small_world", n_agents=50, f=0.1, attack
 
 # ---------------------------------------------------------------- helpers
 
-def _box(ax, x, y, w, h, title=None, fc="white", ec=S.INK, lw=0.7, title_color=S.INK, r=0.06):
+def _box(ax, x, y, w, h, title=None, fc=S.PAPER, ec=S.INK, lw=0.7, title_color=S.INK, r=0.0):
     from matplotlib.patches import FancyBboxPatch
-    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle=f"round,pad=0,rounding_size={r}", fc=fc, ec=ec, lw=lw,
+    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle=f"round,pad=0,rounding_size={r}" if r else "square,pad=0", fc=fc, ec=ec, lw=lw,
                                 zorder=1))
     if title:
-        ax.text(x + 0.08, y + h - 0.08, title, ha="left", va="top", fontsize=8.5, fontweight="bold",
+        ax.text(x + 0.08, y + h - 0.08, title, ha="left", va="top", fontsize=8.5, fontweight="semibold",
                 color=title_color, zorder=3)
 
 
@@ -43,15 +43,15 @@ def _arrow(ax, p, q, color=S.INK, lw=0.9, style="-|>", rad=0.0, ms=7, ls="-"):
 
 def _draw_graph(ax, G, pos, colors, attackers, node_size=14, edge_lw=0.35, att_marker="s"):
     for u, v in G.edges():
-        ax.plot([pos[u][0], pos[v][0]], [pos[u][1], pos[v][1]], color="#BDBDBD", lw=edge_lw, zorder=1)
+        ax.plot([pos[u][0], pos[v][0]], [pos[u][1], pos[v][1]], color=S.LIGHT, lw=edge_lw, zorder=1)
     nodes = np.arange(G.number_of_nodes())
     hon = [i for i in nodes if i not in set(attackers)]
     P = np.array([pos[i] for i in nodes])
-    ax.scatter(P[hon, 0], P[hon, 1], s=node_size, c=[colors[i] for i in hon], edgecolors="white", linewidths=0.3,
+    ax.scatter(P[hon, 0], P[hon, 1], s=node_size, c=[colors[i] for i in hon], edgecolors=S.PAPER, linewidths=0.3,
                zorder=2)
     if len(attackers):
         A = P[list(attackers)]
-        ax.scatter(A[:, 0], A[:, 1], s=node_size * 1.15, c=S.ATTACKER, marker=att_marker, edgecolors="white",
+        ax.scatter(A[:, 0], A[:, 1], s=node_size * 1.15, c=S.ATTACKER, marker=att_marker, edgecolors=S.PAPER,
                    linewidths=0.3, zorder=3)
 
 
@@ -109,7 +109,7 @@ def fig_overview(plt, path: Path) -> None:
             ia.spines[sp].set_visible(False)
         ia.spines["bottom"].set_linewidth(0.5)
         ia.set_title(lab, fontsize=8, pad=1.5)
-    ax.text(x0 + 0.08, top_y + 0.06, "outlined = best guess;\nblue = correct option", fontsize=8, va="bottom")
+    ax.text(x0 + 0.08, top_y + 0.06, "outlined: best guess\nblue: correct option", fontsize=8, va="bottom")
 
     # 2: a real N=12 small-world instance with f = 3/12 compromised agents
     x1, w1 = xs[1], widths[1]
@@ -157,34 +157,34 @@ def fig_overview(plt, path: Path) -> None:
     ia.set_yticks([])
     ia.set_xlabel("f", fontsize=8, labelpad=1)
     ia.set_ylabel("Con", fontsize=8, labelpad=1)
-    ia.set_title("schematic", fontsize=8, color=S.GREY, style="italic", pad=1)
+    ia.set_title("SCHEMATIC", fontsize=8, color=S.MUTED, family=S.MONO, fontweight="normal", pad=1)
     for sp in ("top", "right"):
         ia.spines[sp].set_visible(False)
     for k, (a, b) in enumerate([("Acc", "correct"), ("Con", "on target"), ("f*", "tipping"), ("T50", "speed")]):
         y = top_y + 0.66 - k * 0.15
-        ax.text(x4 + 0.08, y, a, fontsize=8, va="top", fontweight="bold", color=S.CON_C if a == "Con" else S.INK)
+        ax.text(x4 + 0.08, y, a, fontsize=8, va="top", fontweight="semibold", color=S.CON_C if a == "Con" else S.INK)
         ax.text(x4 + 0.40, y, b, fontsize=8, va="top")
 
     # bottom row: red-team loop on the ABM twin -> transfer check on the LLM swarm
     by, bh2 = 0.01, 1.14
     rx, rw = 0.01, 4.08
-    _box(ax, rx, by, rw, bh2, "Red team: worst-case attacks searched on the ABM twin", fc="#F5F5F5", ec=S.GREY)
-    iw, ih, iy = 1.2, 0.66, by + 0.27
+    _box(ax, rx, by, rw, bh2, "Red team: worst-case attacks searched on the ABM twin", fc=S.CARD, ec=S.GREY)
+    iw, ih, iy = 1.2, 0.70, by + 0.205
     items = [(rx + 0.1, "searcher", "random, greedy hub,\nGA, binary PSO,\nMAP-Elites"),
              (rx + 0.1 + iw + 0.14, "proposes attack", "attacker nodes ×\nonset round ×\nattack A1–A5"),
              (rx + 0.1 + 2 * (iw + 0.14), "ABM twin scores it", "fitness = mean Con\nover 5 seeds;\nκ, λ fit on LLM pilot")]
     for k, (x, t, d) in enumerate(items):
-        _box(ax, x, iy, iw, ih, None, fc="white", ec=S.INK, lw=0.6, r=0.04)
-        ax.text(x + iw / 2, iy + ih - 0.05, t, fontsize=8, fontweight="bold", ha="center", va="top")
+        _box(ax, x, iy, iw, ih, None, fc=S.PAPER, ec=S.INK, lw=0.6)
+        ax.text(x + iw / 2, iy + ih - 0.05, t, fontsize=8, fontweight="semibold", ha="center", va="top")
         ax.text(x + iw / 2, iy + ih - 0.20, d, fontsize=8, ha="center", va="top", linespacing=1.05)
         if k < 2:
             _arrow(ax, (x + iw + 0.01, iy + ih / 2), (items[k + 1][0] - 0.01, iy + ih / 2), ms=6)
-    fy = by + 0.13
+    fy = by + 0.115
     _polyarrow(ax, [(items[2][0] + iw / 2, iy), (items[2][0] + iw / 2, fy), (items[0][0] + iw / 2, fy),
                     (items[0][0] + iw / 2, iy - 0.005)], color=S.GREY)
     ax.text((items[0][0] + items[2][0] + iw) / 2, fy, " next proposal (500 evaluations × 10 repeats) ",
-            fontsize=8, ha="center", va="center", color="#555555", zorder=6,
-            bbox=dict(fc="#F5F5F5", ec="none", pad=0.5))
+            fontsize=8, ha="center", va="center", color=S.MUTED, zorder=6,
+            bbox=dict(fc=S.CARD, ec="none", pad=0.5))
 
     tx = rx + rw + 0.14
     tw = W - tx - 0.01
@@ -240,9 +240,9 @@ def fig_components(plt, path: Path) -> None:
     cx = [x_grid + sum(cws[:j]) for j in range(len(cws))]
     hy = head - 0.05
     for x, t in [(x_fam, "Family"), (x_id, "ID"), (x_name, "Strategy"), (x_insp, "Inspiration")]:
-        ax.text(x, hy, t, fontsize=8, fontweight="bold", va="bottom")
+        ax.text(x, hy, t, fontsize=8, fontweight="semibold", va="bottom")
     for j, c in enumerate(COMP_COLS):
-        ax.text(cx[j] + cws[j] / 2, hy, COMP_LABEL[c], fontsize=8, fontweight="bold", ha="center", va="bottom",
+        ax.text(cx[j] + cws[j] / 2, hy, COMP_LABEL[c], fontsize=8, fontweight="semibold", ha="center", va="bottom",
                 rotation=90)
     ax.plot([0.01, W - 0.01], [head, head], color=S.INK, lw=0.6)
     y, prev = head, None
@@ -254,22 +254,22 @@ def fig_components(plt, path: Path) -> None:
         spans.setdefault(fam, [y, y])[1] = y + rh
         cy = y + rh / 2
         if spans[fam][0] == y:
-            ax.text(x_fam, cy, fam, fontsize=8, va="center", color=S.FAMILY_COLOR[fam], fontweight="bold")
-        ax.text(x_id, cy, s, fontsize=8, va="center", fontweight="bold")
+            ax.text(x_fam, cy, fam, fontsize=8, va="center", color=S.FAMILY_COLOR[fam], fontweight="semibold")
+        ax.text(x_id, cy, s, fontsize=8, va="center", family=S.MONO)
         ax.text(x_name, cy, S.STRATEGY_NAME[s], fontsize=8, va="center")
-        ax.text(x_insp, cy, INSP_SHORT[s], fontsize=8, va="center", color="#555555")
+        ax.text(x_insp, cy, INSP_SHORT[s], fontsize=8, va="center", color=S.MUTED)
         code = COMPONENTS.get(s)
         for j, c in enumerate(COMP_COLS):
             x, cw = cx[j], cws[j]
             if code is None:      # S0a/S0b are not in the H10 component matrix
-                ax.add_patch(Rectangle((x + 0.025, y + 0.025), cw - 0.05, rh - 0.05, fc="white", ec=S.LIGHT,
+                ax.add_patch(Rectangle((x + 0.025, y + 0.025), cw - 0.05, rh - 0.05, fc=S.PAPER, ec=S.LIGHT,
                                        lw=0.5, hatch="/////", zorder=1))
                 continue
             on = code[j] == "1"
-            ax.add_patch(Rectangle((x + 0.025, y + 0.025), cw - 0.05, rh - 0.05, fc=S.BLUE if on else "#EFEFEF",
+            ax.add_patch(Rectangle((x + 0.025, y + 0.025), cw - 0.05, rh - 0.05, fc=S.INK if on else S.OFF,
                                    ec="none", zorder=1))
             if on and c == "negfb" and s in NEGFB_KIND:
-                ax.text(x + cw / 2, cy, NEGFB_KIND[s], fontsize=8, ha="center", va="center", color="white")
+                ax.text(x + cw / 2, cy, NEGFB_KIND[s], fontsize=8, ha="center", va="center", color=S.PAPER)
         y += rh
     for fam, (y0, y1) in spans.items():
         ax.add_patch(Rectangle((x_bar, y0 + 0.025), 0.04, y1 - y0 - 0.05, fc=S.FAMILY_COLOR[fam], ec="none"))
@@ -297,9 +297,8 @@ def fig_cascade(plt, path: Path, params: ABMParams | None = None, **over) -> dic
     acc = [(ch[r][hon] == w.task.correct).mean() for r in range(R)]
     con = [(ch[r][hon] == w.target).mean() for r in range(R)]
 
-    fig = plt.figure(figsize=(S.FULL, 2.85))
-    gs = fig.add_gridspec(2, R, height_ratios=[1.75, 0.85], hspace=0.38, wspace=0.02,
-                          left=0.085, right=0.995, top=0.90, bottom=0.135)
+    fig = plt.figure(figsize=(S.FULL, 2.95))
+    gs = fig.add_gridspec(1, R, wspace=0.02, left=0.085, right=0.995, top=0.88, bottom=0.42)
     for r in range(R):
         ax = fig.add_subplot(gs[0, r])
         cols = {i: (S.CORRECT if ch[r, i] == w.task.correct else S.TARGET if ch[r, i] == w.target else S.OTHER)
@@ -309,29 +308,31 @@ def fig_cascade(plt, path: Path, params: ABMParams | None = None, **over) -> dic
         ax.set_xlim(-1.08, 1.08)
         ax.set_ylim(-1.08, 1.08)
         ax.axis("off")
-        ax.set_title(f"Round {r}", fontsize=8, pad=1)
+        ax.set_title(f"ROUND {r}", fontsize=8, pad=1, family=S.MONO, fontweight="normal")
         ax.text(0.5, -0.06, f"Con = {con[r]:.2f}", transform=ax.transAxes, fontsize=8, ha="center", va="top",
                 color=S.TARGET)
-    ax = fig.add_subplot(gs[1, :])
+    # line plot narrower than the graph row, so its legend sits outside the data area and never covers a line
+    gl = fig.add_gridspec(1, 1, left=0.085, right=0.72, top=0.25, bottom=0.115)
+    ax = fig.add_subplot(gl[0, 0])
     rr = np.arange(R)
     ax.plot(rr, acc, "-o", color=S.CORRECT, ms=3.5, label="correct option (Acc)")
-    ax.plot(rr, con, "-s", color=S.TARGET, ms=3.5, label="attackers' target (Con)")
+    ax.plot(rr, con, "--s", color=S.TARGET, ms=3.5, label="attackers' target (Con)")
     ax.set_xticks(rr, [str(r) for r in rr])
     ax.set_xlim(-0.3, R - 0.7)
     ax.set_ylim(0, 1)
     ax.set_yticks([0, 0.5, 1])
     ax.set_xlabel("Round")
     ax.set_ylabel("Share of\nhonest agents")
-    ax.set_title(f"ABM illustration, not LLM data: {cfg.strategy} {S.STRATEGY_NAME[cfg.strategy].lower()}, "
-                 f"{S.TOPO_NAME[cfg.topology]}, N = {cfg.n_agents}, f = {cfg.f:g} ({len(w.attackers)} attackers), "
-                 f"{cfg.attack}, seed {cfg.seed}", loc="left", fontsize=8, color="#555555")
+    fig.text(0.085, 0.31, f"ABM illustration, not LLM data: {cfg.strategy} {S.STRATEGY_NAME[cfg.strategy].lower()}, "
+             f"{S.TOPO_NAME[cfg.topology]}, N = {cfg.n_agents}, f = {cfg.f:g} ({len(w.attackers)} attackers), "
+             f"{cfg.attack}, seed {cfg.seed}", ha="left", va="bottom", fontsize=8, color=S.MUTED)
     S.ygrid(ax)
     h = [Line2D([], [], ls="", marker="o", ms=4, color=S.CORRECT, label="honest: correct option"),
          Line2D([], [], ls="", marker="o", ms=4, color=S.TARGET, label="honest: attackers' target"),
          Line2D([], [], ls="", marker="o", ms=4, color=S.OTHER, label="honest: other option"),
          Line2D([], [], ls="", marker="s", ms=4, color=S.ATTACKER, label="compromised (A2)")]
-    fig.legend(handles=h, loc="upper center", ncol=4, bbox_to_anchor=(0.54, 1.02), handletextpad=0.1)
-    ax.legend(loc="center right", ncol=1)
+    fig.legend(handles=h, loc="upper center", ncol=4, bbox_to_anchor=(0.54, 1.0), handletextpad=0.1)
+    ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5), ncol=1)
     S.save(fig, path)
     m = d["metrics"]
     return {"config": cfg.to_dict(), "n_attackers": int(len(w.attackers)), "honest": int(hon.sum()),

@@ -1,4 +1,5 @@
-/* Swarm Immunity results page. Plain JS, no dependencies. Every number comes from data/*.json. */
+/* Swarm Immunity results page. Plain JS, no dependencies. Every number comes from data/*.json.
+   The hero swarm is an illustration (stepped, not data); sprites come from sprites.js (design/sprites.py). */
 "use strict";
 (function () {
   const SVGNS = "http://www.w3.org/2000/svg";
@@ -64,8 +65,173 @@
   const mName = (id) => (D.labels && D.labels.modules[id] ? D.labels.modules[id].name : id);
   const aName = (id) => (D.labels && D.labels.attacks[id] ? D.labels.attacks[id].name : id);
   const tName = (id) => (D.labels && D.labels.topologies[id]) || id;
-  const optColor = (c) => (c >= 0 ? `var(--o${c % 8})` : "var(--abstain)");
-  const optText = (c) => (c === 0 ? "#ffffff" : "#111111");
+  // Option colours carry meaning: the correct option is sky (accuracy), the attackers' target vermilion
+  // (contamination); any other option gets a neutral categorical hue. Abstain is an unlit tile.
+  const optColor = (c) => {
+    if (c < 0) return "var(--abstain)";
+    const d = RP.data;
+    if (d && c === d.correct) return "var(--acc)";
+    if (d && c === d.target) return "var(--con)";
+    return `var(--o${c % 8})`;
+  };
+  const optText = (c) => (c < 0 ? "var(--si-ink)" : "var(--si-surface)");
+
+  // ------------------------------------------------------------ pixel sprites (design/sprites.py)
+  const PX = { lime: "#a6dd62", sky: "#6fb7ff", amber: "#ffc95c", vermilion: "#e8361c", red1: "#33100c",
+    red2: "#5c130e", red3: "#8f150f", red4: "#c4170f", bone: "#d6b48c", paper: "#f2e9da", off: "#1c1916",
+    ground: "#0b0908" };
+  const PALETTES = {
+    red: { b: PX.red4, d: PX.red2, h: PX.bone, a: PX.vermilion, e: PX.paper },
+    attack: { b: PX.vermilion, d: PX.red3, h: PX.paper, a: PX.vermilion, e: PX.ground },
+    lime: { b: PX.lime, d: "#3a5220", h: PX.paper, a: PX.amber, e: PX.ground },
+    sky: { b: PX.sky, d: "#213d5c", h: PX.paper, a: PX.amber, e: PX.ground },
+    bone: { b: PX.bone, d: PX.red3, h: PX.paper, a: PX.vermilion, e: PX.ground } };
+  const STRATEGY_SPRITE = { S0a: "agent", S0b: "agent", S1: "agent", S2: "agent", S3: "particle", S4: "ant", S5: "bee",
+    S6: "firefly", S7: "wolf", S8: "bird", S9: "bee", S10: "ant", S11: "bat" };
+  const SPR = () => window.SI_SPRITES || {};
+  function spriteSVG(name, pal, cls, title) {
+    const g = SPR()[name];
+    if (!g) return null;
+    const p = PALETTES[pal] || PALETTES.red, w = g[0].length, h = g.length, gap = 0.16;
+    const svg = sv("svg", { class: cls || "sprite-ic", viewBox: `0 0 ${w} ${h}`, "shape-rendering": "crispEdges",
+      role: title ? "img" : null, "aria-label": title || null, "aria-hidden": title ? null : "true",
+      preserveAspectRatio: "xMidYMid meet" });
+    g.forEach((row, y) => [...row].forEach((ch, x) => {
+      if (ch !== "." && p[ch]) svg.appendChild(sv("rect", { x: x + gap / 2, y: y + gap / 2, width: 1 - gap, height: 1 - gap, fill: p[ch] }));
+    }));
+    return svg;
+  }
+  const stratIcon = (s) => spriteSVG(STRATEGY_SPRITE[s] || "agent", "red", "sprite-ic");
+
+  function renderCast() {
+    const box = $("#cast");
+    if (!box) return;
+    clear(box);
+    const cast = [["ant", "red", "Ants", "S4 trails · S10 roles"], ["bee", "red", "Honeybees", "S5 foraging · S9 nest-site"],
+      ["wolf", "red", "Wolves", "S7 pack hierarchy"], ["bird", "red", "Birds", "S8 boids"],
+      ["firefly", "red", "Fireflies", "S6 attraction"], ["bat", "red", "Vampire bats", "S11 trust · exploratory"],
+      ["particle", "red", "Abstract", "S1 vote · S2 debate · S3 PSO"], ["compromised", "attack", "Compromised", "pushes the target"]];
+    for (const [sp, pal, name, sub] of cast) {
+      box.appendChild(el("li", {}, spriteSVG(sp, pal, "", `${name} sprite`), el("div", {}, el("b", { text: name }), el("small", { text: sub }))));
+    }
+  }
+
+  // ------------------------------------------------------------ hero: a stepped pixel-mosaic swarm (illustration)
+  function heroSwarm() {
+    const cv = document.getElementById("swarm");
+    if (!cv || !cv.getContext) return;
+    const ctx = cv.getContext("2d");
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const order = ["ant", "bee", "wolf", "bird", "firefly", "bat"];
+    let W = 0, H = 0, cell = 14, cols = 0, rows = 0, agents = [], tex = [], sprite = null, ep = 0;
+    let phase = "spread", step = 0, scan = -1, timer = null, visible = true;
+    const rnd = (() => { let x = 2463534242; return () => ((x ^= x << 13, x ^= x >>> 17, x ^= x << 5) >>> 0) / 4294967296; })();
+
+    function layoutSprite() {
+      const name = order[ep % order.length], g = SPR()[name];
+      if (!g) { sprite = null; return; }
+      const wide = W >= 900;
+      const sc = wide ? 2 : 1;                       // each sprite pixel = sc x sc mosaic cells
+      const sw = g[0].length * sc, sh = g.length * sc;
+      const c0 = Math.max(0, Math.min(cols - sw - 1, Math.round(cols * (wide ? 0.76 : 0.5) - sw / 2)));
+      const r0 = Math.max(1, Math.round(rows * (wide ? 0.27 : 0.5) - sh / 2));
+      sprite = { name, g, sc, c0, r0 };
+    }
+    function spriteAt(c, r) {
+      if (!sprite) return null;
+      const x = Math.floor((c - sprite.c0) / sprite.sc), y = Math.floor((r - sprite.r0) / sprite.sc);
+      if (y < 0 || y >= sprite.g.length || x < 0 || x >= sprite.g[0].length) return null;
+      const ch = sprite.g[y][x];
+      return ch === "." ? null : PALETTES.red[ch] || null;
+    }
+    function reset() {
+      step = 0; phase = "spread"; scan = -1;
+      layoutSprite();
+      const n = Math.max(24, Math.min(150, Math.round(cols * rows * 0.05)));
+      agents = [];
+      for (let i = 0; i < n; i++) {
+        const k = i < Math.max(2, Math.round(n * 0.06)) ? "bad" : rnd() < 0.28 ? "informed" : "honest";
+        agents.push({ c: Math.floor(rnd() * cols), r: Math.floor(rnd() * rows), k, base: k, flash: 0 });
+      }
+    }
+    function resize() {
+      const rect = cv.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      W = Math.max(1, rect.width); H = Math.max(1, rect.height);
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cell = W < 600 ? 12 : 14;
+      cols = Math.ceil(W / cell); rows = Math.ceil(H / cell);
+      tex = Array.from({ length: cols * rows }, () => rnd());
+      reset();
+    }
+    function tick() {
+      step++;
+      for (const a of agents) {                      // stepped random walk, one cell at a time
+        if (a.flash) a.flash--;
+        if (rnd() < 0.45) {
+          a.c = Math.max(0, Math.min(cols - 1, a.c + Math.floor(rnd() * 3) - 1));
+          a.r = Math.max(0, Math.min(rows - 1, a.r + Math.floor(rnd() * 3) - 1));
+        }
+      }
+      if (phase === "spread") {                      // compromised and misled tiles turn their neighbours
+        const src = agents.filter((a) => a.k === "bad" || a.k === "misled");
+        for (const a of agents) {
+          if (a.k !== "honest" && a.k !== "informed") continue;
+          const near = src.some((b) => Math.abs(b.c - a.c) <= 2 && Math.abs(b.r - a.r) <= 2);
+          if (near && rnd() < (a.k === "informed" ? 0.025 : 0.14)) { a.k = "misled"; a.flash = 2; }
+        }
+        const misled = agents.filter((a) => a.k === "misled").length / agents.length;
+        if (misled > 0.5 || step > 90) { phase = "immune"; scan = 0; }
+      } else if (phase === "immune") {               // a defence sweep restores misled tiles, stepping column by column
+        scan += 2;
+        for (const a of agents) if (a.k === "misled" && a.c <= scan) { a.k = a.base; a.flash = 3; }
+        if (scan > cols + 6) { ep++; reset(); }
+      }
+    }
+    const COL = { honest: PX.lime, informed: PX.sky, misled: PX.red4, bad: PX.vermilion };
+    function draw() {
+      ctx.fillStyle = PX.ground;
+      ctx.fillRect(0, 0, W, H);
+      const g = 2, t = cell - g;
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        const sp = spriteAt(c, r);
+        if (sp) { ctx.fillStyle = sp; ctx.fillRect(c * cell + 1, r * cell + 1, t, t); continue; }
+        const v = tex[r * cols + c];
+        if (v < 0.42) continue;
+        ctx.fillStyle = v > 0.985 ? "#2b1411" : PX.off;
+        ctx.fillRect(c * cell + 1, r * cell + 1, t, t);
+      }
+      if (phase === "immune" && scan >= 0) {
+        ctx.fillStyle = PX.paper;
+        ctx.fillRect(Math.min(scan, cols) * cell, 0, 3, H);
+      }
+      for (const a of agents) {
+        const x = a.c * cell + 1, y = a.r * cell + 1;
+        ctx.fillStyle = a.flash ? PX.paper : COL[a.k];
+        ctx.fillRect(x, y, t, t);
+        if (a.k === "bad") { ctx.fillStyle = PX.red1; ctx.fillRect(x + t / 2 - 2, y + t / 2 - 2, 4, 4); }
+      }
+    }
+    function loop() {
+      timer = null;
+      if (!visible || document.hidden) return;
+      tick(); draw();
+      timer = setTimeout(() => requestAnimationFrame(loop), 200);
+    }
+    function start() { if (!timer && !reduce) timer = setTimeout(() => requestAnimationFrame(loop), 200); }
+    resize();
+    if (reduce) { for (let i = 0; i < 22; i++) tick(); draw(); }
+    else { draw(); start(); }
+    if (window.ResizeObserver) {
+      let last = W;
+      new ResizeObserver(() => { const w = cv.getBoundingClientRect().width; if (Math.abs(w - last) > 4) { last = w; resize(); draw(); } }).observe(cv);
+    }
+    if (window.IntersectionObserver) {
+      new IntersectionObserver((es) => { visible = es[0].isIntersecting; if (visible) start(); }).observe(cv);
+    }
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) start(); });
+  }
   const sortStrat = (a, b) => {
     const k = (s) => { const m = /^S(\d+)([a-z]?)$/.exec(s); return m ? +m[1] * 10 + (m[2] ? m[2].charCodeAt(0) - 96 : 0) : 999; };
     return k(a) - k(b);
@@ -215,7 +381,7 @@
     svg.appendChild(sv("title", { text: title }));
     svg.appendChild(sv("rect", { x: 0, y: 4, width: W, height: 14, fill: "var(--surface-2)" }));
     if (isNum(m)) {
-      svg.appendChild(sv("rect", { x: 0, y: 6, width: Math.max(0.6, m * W), height: 10, fill: color, opacity: 0.85 }));
+      svg.appendChild(sv("rect", { x: 0, y: 6, width: Math.max(0.6, m * W), height: 10, fill: color }));
       if (isNum(lo) && isNum(hi)) {
         const ln = (x1, y1, x2, y2) => sv("line", { x1, y1, x2, y2, stroke: "var(--fg)", "stroke-width": 1.4,
           "vector-effect": "non-scaling-stroke" });
@@ -261,7 +427,7 @@
       }
       tb.appendChild(el("tr", {},
         el("td", { class: "c-rank", text: String(i + 1) }),
-        el("td", { class: "c-name" }, el("span", { class: "sname", text: sName(r.s) }), el("span", { class: "sid", text: r.s })),
+        el("td", { class: "c-name" }, el("span", { class: "sname", text: sName(r.s) }), el("span", { class: "sid" }, stratIcon(r.s), r.s)),
         el("td", {}, barSVG(c && c.con, c && c.con_lo, c && c.con_hi, "var(--con)", conT),
           el("span", { class: "num", title: conT }, c ? [el("b", { text: fmt(c.con) }), " ", el("span", { class: "ci", text: `[${fmt(c.con_lo)}, ${fmt(c.con_hi)}]` })] : "not run yet")),
         el("td", {}, barSVG(a && a.acc, a && a.acc_lo, a && a.acc_hi, "var(--acc)", accT),
@@ -303,7 +469,7 @@
       const tip = tipFor(s);
       const sub = tip ? (tip.in_range ? `f* = ${ci(tip.f_star, tip.lo, tip.hi)}` : tip.f_star == null ? "no contamination at any f" : `f* beyond tested range`) : "";
       body.appendChild(el("div", { class: "mult" },
-        el("h3", {}, `${sName(s)} `, el("span", { text: s })), el("div", { class: "sub", text: sub || " " }),
+        el("h3", {}, stratIcon(s), `${sName(s)} `, el("span", { text: s })), el("div", { class: "sub", text: sub || " " }),
         curveSVG(pts, maxF, tip && tip.in_range ? tip.f_star : null, s)));
     }
   }
@@ -330,7 +496,7 @@
       svg.appendChild(sv("path", { d: ok.map((p, i) => `${i ? "L" : "M"}${x(p.f_eff)},${y(p[m])}`).join(""), fill: "none",
         stroke: color, "stroke-width": 2, "stroke-dasharray": dash || null }));
       for (const p of ok) {
-        const c = sv("circle", { cx: x(p.f_eff), cy: y(p[m]), r: 2.4, fill: color });
+        const c = sv("rect", { x: x(p.f_eff) - 2.4, y: y(p[m]) - 2.4, width: 4.8, height: 4.8, fill: color });
         c.appendChild(sv("title", { text: `${m === "con" ? "Contamination" : "Accuracy"} at f=${p.f_eff.toFixed(3)}: ${ci(p[m], p[m + "_lo"], p[m + "_hi"])} (${p.n} seeds)` }));
         svg.appendChild(c);
       }
@@ -379,23 +545,24 @@
     const [x0, x1] = pad(Math.min(...xs), Math.max(...xs)), [y0, y1] = pad(Math.min(...ys), Math.max(...ys));
     const x = (v) => L + ((v - x0) / (x1 - x0)) * (W - L - R), y = (v) => T + (1 - (v - y0) / (y1 - y0)) * (H - T - B);
     const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Defence modules: contamination reduction vs usefulness change" });
-    svg.appendChild(sv("rect", { x: x(0), y: T, width: Math.max(0, W - R - x(0)), height: Math.max(0, y(0) - T), fill: "var(--fstar)", opacity: 0.07 }));
+    svg.appendChild(sv("rect", { x: x(0), y: T, width: Math.max(0, W - R - x(0)), height: Math.max(0, y(0) - T), fill: "var(--si-lime)", opacity: 0.08 }));
     const ticks = (a, b) => { const st = niceStep((b - a) / 4); const out = []; for (let v = Math.ceil(a / st) * st; v <= b + 1e-12; v += st) out.push(+v.toFixed(10)); return out; };
     for (const v of ticks(y0, y1)) { svg.appendChild(sv("line", { class: "gridline", x1: L, x2: W - R, y1: y(v), y2: y(v) })); svg.appendChild(sv("text", { x: L - 5, y: y(v) + 3, "text-anchor": "end", "font-size": 10, text: trim(v) })); }
     for (const v of ticks(x0, x1)) { svg.appendChild(sv("line", { class: "gridline", y1: T, y2: H - B, x1: x(v), x2: x(v) })); svg.appendChild(sv("text", { x: x(v), y: H - B + 13, "text-anchor": "middle", "font-size": 10, text: trim(v) })); }
-    svg.appendChild(sv("line", { x1: L, x2: W - R, y1: y(0), y2: y(0), stroke: "var(--muted)", "stroke-width": 1 }));
-    svg.appendChild(sv("line", { y1: T, y2: H - B, x1: x(0), x2: x(0), stroke: "var(--muted)", "stroke-width": 1 }));
+    svg.appendChild(sv("line", { x1: L, x2: W - R, y1: y(0), y2: y(0), stroke: "var(--subtle)", "stroke-width": 1 }));
+    svg.appendChild(sv("line", { y1: T, y2: H - B, x1: x(0), x2: x(0), stroke: "var(--subtle)", "stroke-width": 1 }));
     svg.appendChild(sv("text", { x: (L + W - R) / 2, y: H - 8, "text-anchor": "middle", "font-size": 11, text: "accuracy change at f = 0 (usefulness)" }));
     svg.appendChild(sv("text", { x: 12, y: (T + H - B) / 2, "text-anchor": "middle", "font-size": 11, transform: `rotate(-90 12 ${(T + H - B) / 2})`, text: "contamination reduction" }));
     if (W - R - x(0) > 96) svg.appendChild(sv("text", { x: W - R - 4, y: T + 12, "text-anchor": "end", "font-size": 10, text: "safer at no cost" }));
     pts.forEach((p, i) => {
-      const col = `var(--o${["M1", "M2", "M3", "M4", "M5", "M6"].indexOf(p.m) >= 0 ? ["M1", "M2", "M3", "M4", "M5", "M6"].indexOf(p.m) : i % 8})`;
+      const mi = ["M1", "M2", "M3", "M4", "M5", "M6"].indexOf(p.m);
+      const col = mi >= 0 ? `var(--m${mi + 1})` : `var(--o${i % 8})`;
       const g = sv("g", {});
       const cx = x(p.use.diff), cy = y(-p.dcon.diff);
       if (isNum(p.use.lo) && isNum(p.use.hi)) g.appendChild(sv("line", { x1: x(p.use.lo), x2: x(p.use.hi), y1: cy, y2: cy, stroke: col, "stroke-width": 2 }));
       if (isNum(p.dcon.lo) && isNum(p.dcon.hi)) g.appendChild(sv("line", { y1: y(-p.dcon.lo), y2: y(-p.dcon.hi), x1: cx, x2: cx, stroke: col, "stroke-width": 2 }));
-      g.appendChild(sv("circle", { cx, cy, r: 5, fill: col, stroke: "var(--surface)", "stroke-width": 1.5 }));
-      g.appendChild(sv("text", { x: cx + 7, y: cy - 6, "font-size": 11, "font-weight": 700, style: "fill: var(--fg)", text: p.m }));
+      g.appendChild(sv("rect", { x: cx - 5, y: cy - 5, width: 10, height: 10, fill: col, stroke: "var(--surface)", "stroke-width": 1.5 }));
+      g.appendChild(sv("text", { x: cx + 8, y: cy - 7, "font-size": 11, "font-weight": 500, style: "fill: var(--fg)", text: p.m }));
       g.appendChild(sv("title", { text: `${p.m} ${mName(p.m)}: contamination change ${ci(p.dcon.diff, p.dcon.lo, p.dcon.hi, 3)}; usefulness ${ci(p.use.diff, p.use.lo, p.use.hi, 3)}` }));
       svg.appendChild(g);
     });
@@ -474,10 +641,10 @@
       const e = prob[name], cy = T + i * rowH + rowH / 2;
       const b = e.best500 || {};
       svg.appendChild(sv("text", { x: L - 6, y: cy + 3, "text-anchor": "end", "font-size": 10, text: SEARCHERS[name] || name }));
-      if (isNum(e.q25) && isNum(e.q75)) svg.appendChild(sv("rect", { x: x(e.q25), y: cy - 6, width: Math.max(1, x(e.q75) - x(e.q25)), height: 12, fill: "var(--con)", opacity: 0.25, rx: 2 }));
+      if (isNum(e.q25) && isNum(e.q75)) svg.appendChild(sv("rect", { x: x(e.q25), y: cy - 6, width: Math.max(1, x(e.q75) - x(e.q25)), height: 12, fill: "var(--con)", opacity: 0.3 }));
       if (isNum(b.lo) && isNum(b.hi)) svg.appendChild(sv("line", { x1: x(b.lo), x2: x(b.hi), y1: cy, y2: cy, stroke: "var(--fg)", "stroke-width": 1.4 }));
       if (isNum(b.mean)) {
-        const c = sv("circle", { cx: x(b.mean), cy, r: 4, fill: "var(--con)" });
+        const c = sv("rect", { x: x(b.mean) - 4, y: cy - 4, width: 8, height: 8, fill: "var(--con)" });
         const vr = e.vs_random ? `; vs random ${ci(e.vs_random.diff, e.vs_random.lo, e.vs_random.hi, 3)}` : "";
         c.appendChild(sv("title", { text: `${SEARCHERS[name] || name}: mean ${ci(b.mean, b.lo, b.hi, 3)}, median ${fmt(e.median, 3)}, IQR ${fmt(e.q25, 3)}–${fmt(e.q75, 3)}, ${b.n} repeats, ${e.evals} evaluations${vr}` }));
         svg.appendChild(c);
@@ -528,10 +695,12 @@
     RP.nodes = d.nodes.map((n) => {
       const cx = P(n.x), cy = P(1 - n.y);
       const g = sv("g", { class: "node", tabindex: 0, role: "button" });
-      g.appendChild(sv("circle", { class: "ring", cx, cy, r: rad + 2 }));
-      if (att.has(n.id)) g.appendChild(sv("circle", { cx, cy, r: rad + 1, fill: "none", stroke: "var(--fg)", "stroke-width": Math.max(0.5, rad * 0.22), "stroke-dasharray": `${rad * 0.5} ${rad * 0.35}` }));
-      const body = sv("circle", { cx, cy, r: rad, stroke: un.has(n.id) ? "var(--muted)" : "rgba(0,0,0,.35)", "stroke-width": 0.3, style: "transition: fill .35s" });
-      const label = rad >= 3 ? sv("text", { x: cx, y: cy + rad * 0.38, "text-anchor": "middle", "font-size": rad * 1.05, "font-weight": 700, "pointer-events": "none" }) : null;
+      // agents are square tiles; compromised agents carry a dashed vermilion frame
+      const sq = (r, a) => sv("rect", Object.assign({ x: cx - r, y: cy - r, width: 2 * r, height: 2 * r }, a));
+      g.appendChild(sq(rad + 1.9, { class: "ring" }));
+      if (att.has(n.id)) g.appendChild(sq(rad + 0.9, { fill: "none", stroke: "var(--si-vermilion)", "stroke-width": Math.max(0.45, rad * 0.2), "stroke-dasharray": `${rad * 0.45} ${rad * 0.3}` }));
+      const body = sq(rad * 0.9, { class: "body", stroke: un.has(n.id) ? "var(--si-subtle)" : "none", "stroke-width": 0.3, "stroke-dasharray": un.has(n.id) ? "0.6 0.4" : null });
+      const label = rad >= 3 ? sv("text", { x: cx, y: cy + rad * 0.36, "text-anchor": "middle", "font-size": rad * 1.0, "font-weight": 600, "pointer-events": "none" }) : null;
       g.append(body); if (label) g.appendChild(label);
       const show = () => { RP.hover = n.id; renderAgent(); };
       g.addEventListener("mouseenter", show);
@@ -562,7 +731,8 @@
       i === d.correct ? el("span", { class: "tag correct", text: "correct" }) : null,
       i === d.target ? el("span", { class: "tag target", text: "attackers' target" }) : null)),
       el("span", {}, el("i", { class: "dot", style: "background:var(--abstain)" }), "abstain / no valid reply"),
-      el("span", {}, el("i", { class: "dot att" }), "compromised agent"));
+      el("span", {}, el("i", { class: "dot att" }), "compromised agent"),
+      d.uninformed && d.uninformed.length ? el("span", {}, el("i", { class: "dot", style: "outline:1px dashed var(--si-subtle);outline-offset:-1px" }), "uninformed (dashed edge)") : null);
     const commNote = { board: "This strategy coordinates through a shared board, not along edges; edges (dashed) show the run's graph for reference.",
       broadcast: "Leaders broadcast to every agent; edges (dashed) show the run's graph for reference.",
       none: "Agents answer independently; edges (dashed) are not used for communication." }[comm];
@@ -683,6 +853,8 @@
 
   // ------------------------------------------------------------ boot
   async function boot() {
+    renderCast();
+    heroSwarm();
     try {
       const [manifest, results, labels] = await Promise.all([getJSON("data/manifest.json"), getJSON("data/results.json"), getJSON("data/labels.json")]);
       Object.assign(D, { manifest, results, labels });

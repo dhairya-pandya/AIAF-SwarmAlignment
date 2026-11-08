@@ -6,15 +6,17 @@
 <title>Swarm Immunity</title>
 <meta name="description" content="Results of a safety benchmark of bio-inspired coordination strategies for LLM agent swarms with compromised agents.">
 <meta name="author" content="Dhairya Pandya">
-<meta name="color-scheme" content="light dark">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l12 7v14l-12 7-12-7V9z' fill='%23E69F00'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%230072B2'/%3E%3C/svg%3E">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0908">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' shape-rendering='crispEdges'%3E%3Crect width='32' height='32' fill='%230b0908'/%3E%3Crect x='3' y='3' width='12' height='12' fill='%23a6dd62'/%3E%3Crect x='17' y='3' width='12' height='12' fill='%236fb7ff'/%3E%3Crect x='3' y='17' width='12' height='12' fill='%23a6dd62'/%3E%3Crect x='17' y='17' width='12' height='12' fill='%23e8361c'/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/InstrumentSans%5Bwdth%2Cwght%5D.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar">
   <div class="wrap topbar-inner">
-    <a class="brand" href="#top">Swarm Immunity</a>
+    <a class="brand" href="#top"><svg class="brand-mark" viewBox="0 0 22 18" aria-hidden="true" shape-rendering="crispEdges"><rect x="0" y="0" width="10" height="8" fill="#a6dd62"/><rect x="12" y="0" width="10" height="8" fill="#6fb7ff"/><rect x="0" y="10" width="10" height="8" fill="#a6dd62"/><rect x="12" y="10" width="10" height="8" fill="#e8361c"/></svg><span class="brand-text">Swarm Immunity</span></a>
     <nav aria-label="Sections">
       <a href="#leaderboard">Leaderboard</a>
       <a href="#curves">Curves</a>
@@ -29,13 +31,25 @@
 </header>
 
 <main id="main">
+  <section id="top" class="hero" aria-labelledby="title">
+    <div class="hero-art" aria-hidden="true"><canvas id="swarm"></canvas></div>
+    <div class="hero-copy wrap">
+      <p class="eyebrow rise">Apart × AIAF Swarm Alignment Hackathon · November 2026</p>
+      <h1 id="title" class="rise rise-2"><span class="display">Swarm<br>Immunity</span>
+        <span class="sub">How nature's collectives inspire defences for agentic AI</span></h1>
+      <p class="byline rise rise-3"><b>Dhairya Pandya</b> · IIITDM Jabalpur</p>
+      <p class="hero-legend rise rise-3"><span><i style="background:var(--si-lime)"></i>honest agent</span>
+        <span><i style="background:var(--si-sky)"></i>holds the correct answer</span>
+        <span><i style="background:var(--si-vermilion)"></i>compromised / misled</span>
+        <span>Illustration, not data</span></p>
+    </div>
+  </section>
+
   <div id="status" class="status wrap" role="status" aria-live="polite">Loading data…</div>
 
-  <section id="top" class="hero wrap">
-    <p class="eyebrow">Apart × AIAF Swarm Alignment Hackathon · November 2026</p>
-    <h1>Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI</h1>
-    <p class="byline">Dhairya Pandya</p>
-    <p class="lede">When many AI agents work together, a few compromised members can steer the whole group to a
+  <section class="intro wrap" aria-label="About the study">
+    <ul class="cast" id="cast" aria-label="Coordination families"></ul>
+    <p class="lede" style="margin-top:28px">When many AI agents work together, a few compromised members can steer the whole group to a
       wrong answer. This project borrows coordination rules from ant trails, honeybee nest-site choice, wolf packs,
       fireflies and bird flocks, gives each rule to a swarm of language-model agents, and plants compromised agents
       that push a wrong "target" option. Every honest agent holds only a few facts, so the group has to pool
@@ -53,7 +67,7 @@
   </section>
 
   <section id="leaderboard" class="wrap panel">
-    <h2>Strategy leaderboard <span class="chip-slot"></span></h2>
+    <h2 data-n="01">Strategy leaderboard <span class="chip-slot"></span></h2>
     <p class="hint">Contamination at the chosen attacker fraction and accuracy without attackers, for every
       strategy in the selected cell. Sorted by contamination (lowest first). Whiskers are 95% CIs.</p>
     <div class="filters" data-filters="main"></div>
@@ -65,7 +79,7 @@
   </section>
 
   <section id="curves" class="wrap panel">
-    <h2>Contamination vs attacker fraction <span class="chip-slot"></span></h2>
+    <h2 data-n="02">Contamination vs attacker fraction <span class="chip-slot"></span></h2>
     <p class="hint">One panel per strategy, for the cell selected by the filters (shared with the leaderboard).
       <span class="key"><i class="sw sw-con"></i>contamination</span>
       <span class="key"><i class="sw sw-acc"></i>accuracy</span>
@@ -75,7 +89,7 @@
   </section>
 
   <section id="defences" class="wrap panel">
-    <h2>Defence modules: cost and benefit <span class="chip-slot"></span></h2>
+    <h2 data-n="03">Defence modules: cost and benefit <span class="chip-slot"></span></h2>
     <p class="hint">Each module is compared with no defence on the same seeds. Up = less contamination when attackers
       are present; right = higher accuracy without attackers (left means the defence costs usefulness).
       Crosses are 95% CIs.</p>
@@ -84,7 +98,7 @@
   </section>
 
   <section id="hypotheses" class="wrap panel">
-    <h2>Hypothesis scorecard <span class="chip-slot"></span></h2>
+    <h2 data-n="04">Hypothesis scorecard <span class="chip-slot"></span></h2>
     <p class="hint">Pre-registered hypotheses H0–H10 and their verdicts, per data source. p values are adjusted with
       Holm's method where the test belongs to the family.</p>
     <div class="filters" id="hyp-filters"></div>
@@ -92,7 +106,7 @@
   </section>
 
   <section id="redteam" class="wrap panel">
-    <h2>Red team: how bad an attack can a search find? <span class="chip-slot"></span></h2>
+    <h2 data-n="05">Red team: how bad an attack can a search find? <span class="chip-slot"></span></h2>
     <p class="hint">Search algorithms choose which agents to compromise (k nodes). Each panel shows the best
       contamination each searcher found within its evaluation budget, over repeats: bar = interquartile range,
       dot = mean, whisker = 95% CI of the mean.</p>
@@ -100,7 +114,7 @@
   </section>
 
   <section id="replay" class="wrap panel">
-    <h2>Replay viewer</h2>
+    <h2 data-n="06">Replay viewer</h2>
     <p class="hint">Animates one logged run round by round on its communication graph. Nodes are coloured by the
       option each agent chose in that round (the letter is shown too). Hover, focus or tap a node to read its
       message.</p>
@@ -108,12 +122,12 @@
   </section>
 
   <section id="figures" class="wrap panel">
-    <h2>Report figures <span class="chip-slot"></span></h2>
+    <h2 data-n="07">Report figures <span class="chip-slot"></span></h2>
     <div id="fig-body" class="gallery"></div>
   </section>
 
   <section id="data" class="wrap panel">
-    <h2>Data and provenance</h2>
+    <h2 data-n="08">Data and provenance</h2>
     <div id="data-body"></div>
   </section>
 </main>
@@ -122,6 +136,7 @@
   <p>Swarm Immunity · Dhairya Pandya · Code package <code>hiveguard</code>. Every number on this page is read from the
     JSON files in <code>data/</code>; nothing is typed in by hand.</p>
 </footer>
+<script src="sprites.js" defer></script>
 <script src="app.js" defer></script>
 </body>
 </html>

@@ -13,6 +13,8 @@ from pathlib import Path
 
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # run from anywhere: import hiveguard from the repo
+
 MODEL = "openrouter:openai/gpt-oss-120b"
 M5_MODELS = [MODEL, "openrouter:minimax/minimax-m3.1-flash", "openrouter:qwen/qwen3.6-35b-a3b"]
 SEEDS = 6

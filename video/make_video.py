@@ -10,7 +10,10 @@ Scene types (see video/script.yaml): title, bullets, image, clip.
 Narration is spoken with macOS `say`; scene length = narration length + `padding` seconds.
 A sidecar .srt is always written next to the MP4 and also muxed as a soft subtitle track.
 
-Requires: ffmpeg/ffprobe on PATH, macOS `say`, matplotlib, PyYAML.
+Frames are drawn with PIL in the project's design system (design/: tokens, fonts, sprites, mosaic art).
+Scene changes are a stepped tile wipe (8 steps) or hard cuts (--no-xfade); figure zooms move in steps.
+
+Requires: ffmpeg/ffprobe on PATH, macOS `say`, Pillow, PyYAML.
 """
 from __future__ import annotations
 
@@ -23,33 +26,34 @@ import sys
 import wave
 from pathlib import Path
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.image as mpimg  # noqa: E402
-import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.patches import FancyBboxPatch, Rectangle  # noqa: E402
 import yaml  # noqa: E402
+from PIL import Image, ImageDraw  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 VIDEO_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from design import mosaic as M  # noqa: E402
+from design import mpl as D  # noqa: E402
 
-FONT = ["Avenir Next", "Helvetica Neue", "Helvetica", "Arial", "DejaVu Sans"]
-plt.rcParams["font.family"] = FONT
-
-# Colours
-NAVY = "#0B1F3A"
-NAVY_2 = "#13325C"
-AMBER = "#F2B134"
-LIGHT = "#EEF3F9"
-MUTED = "#A9BCD2"
-INK = "#0B1F3A"
-INK_MUTED = "#4A5B70"
-WHITE = "#FFFFFF"
+# Design system colours (design/mpl.py): warm-black plate, ink type, vermilion accents, colour only for state
+PLATE = D.SURFACE
+INK = D.INK
+MUTED = D.MUTED
+SUBTLE = D.SUBTLE
+ACCENT = D.VERMILION
+BONE = D.BONE
 
 BASE_W, BASE_H = 1920, 1080
 SUB_ZONE = 0.155  # bottom fraction of the frame kept free for subtitles
 AUDIO_SR = 48000
+
+# section sprite per scene id (override with `sprite:` in the script); compromised = the threat glyph
+SCENE_SPRITE = {"title": "wolf", "problem": "compromised", "idea": "bee", "defences": "ant", "reproducibility": "particle",
+                "closing": "bird", "howitworks": "firefly"}
+# stepped tile wipe between scenes (xfade custom expression): tiles flip from scene A to B in 8 steps,
+# sweeping left to right with a hashed jitter per tile
+TILE_WIPE = ("if(lt(floor(X*32/W)/32*0.72+mod(floor(X*32/W)*7+floor(Y*18/H)*13+floor(X*32/W)*floor(Y*18/H)*3\\,17)/17*0.28"
+             "\\,floor((1-P)*8)/8)\\,B\\,A)")
 
 
 # --------------------------------------------------------------------------- utils
@@ -79,189 +83,221 @@ def srt_time(t: float) -> str:
 
 
 class Canvas:
-    """A 16:9 matplotlib figure whose font sizes are expressed at 1920x1080 and scale with resolution."""
+    """A 16:9 PIL frame. Sizes are given at 1920x1080 and scale with resolution; positions are pixels at 1080p."""
 
     def __init__(self, w: int, h: int, bg: str | None):
         self.w, self.h = w, h
-        self.dpi = 100 * w / BASE_W
-        self.fig = plt.figure(figsize=(BASE_W / 100, BASE_H / 100), dpi=self.dpi)
-        if bg is None:
-            self.fig.patch.set_alpha(0.0)
-        else:
-            self.fig.patch.set_facecolor(bg)
-        self.renderer = self.fig.canvas.get_renderer()
+        self.k = w / BASE_W
+        self.im = Image.new("RGBA", (w, h), (0, 0, 0, 0) if bg is None else M.rgb(bg, 255))
+        self.dr = ImageDraw.Draw(self.im, "RGBA")
 
-    def text(self, x, y, s, size, color, weight="normal", ha="left", va="baseline", **kw):
-        return self.fig.text(x, y, s, fontsize=size, color=color, weight=weight, ha=ha, va=va,
-                             parse_math=False, **kw)
+    def f(self, size: float, weight: int = 400, kind: str = "sans"):
+        return M.font(kind, size * self.k, weight)
 
-    def width_frac(self, s: str, size: float, weight: str = "normal") -> float:
-        t = self.text(0, 0, s, size, "k", weight)
-        wpx = t.get_window_extent(self.renderer).width
-        t.remove()
-        return wpx / self.fig.bbox.width
+    def text(self, x, y, s, size, color, weight=400, kind="sans", track=0.0, anchor="ls"):
+        return M.draw_text(self.dr, (x * self.k, y * self.k), s, self.f(size, weight, kind),
+                           M.rgb(color) if isinstance(color, str) else color, track, anchor) / self.k
 
-    def wrap(self, s: str, size: float, max_frac: float, weight: str = "normal") -> list[str]:
-        lines: list[str] = []
-        for para in str(s).split("\n"):
-            cur = ""
-            for word in para.split():
-                trial = f"{cur} {word}".strip()
-                if cur and self.width_frac(trial, size, weight) > max_frac:
-                    lines.append(cur)
-                    cur = word
-                else:
-                    cur = trial
-            lines.append(cur)
-        return lines
+    def caps(self, x, y, s, size, color=MUTED, weight=400, anchor="ls"):
+        return self.text(x, y, str(s).upper(), size, color, weight, "mono", 0.06, anchor)
 
-    def line_h(self, size: float, spacing: float = 1.25) -> float:
-        """Line height in figure-height fraction for a font size given in points at 1080p."""
-        return size * spacing / 72 * 100 / BASE_H
+    def width(self, s, size, weight=400, track=0.0, kind="sans"):
+        return M.text_w(s, self.f(size, weight, kind), track) / self.k
+
+    def wrap(self, s, size, maxw, weight=400, track=0.0, kind="sans"):
+        return M.wrap(s, self.f(size, weight, kind), maxw * self.k, track)
+
+    def rect(self, x0, y0, x1, y1, color):
+        self.dr.rectangle([x0 * self.k, y0 * self.k, x1 * self.k - 1, y1 * self.k - 1],
+                          fill=M.rgb(color) if isinstance(color, str) else color)
+
+    def sprite(self, name, x, y, cell, pal="red"):
+        M.sprite(self.dr, name, x * self.k, y * self.k, cell * self.k, pal, gap=max(1, round(2 * self.k)))
+
+    def paste(self, img: Image.Image, x, y):
+        self.im.paste(img, (int(x * self.k), int(y * self.k)), img if img.mode == "RGBA" else None)
 
     def save(self, path: Path) -> None:
-        self.fig.savefig(path, dpi=self.dpi, facecolor=self.fig.get_facecolor(),
-                         transparent=self.fig.patch.get_alpha() == 0.0)
-        plt.close(self.fig)
+        im = self.im
+        if im.getextrema()[3][0] == 255:     # opaque frame: add the plate grain
+            im = M.grain(im, 0.03)
+        im.save(path)
 
 
-def draw_lines(c: Canvas, x, y_top, lines, size, color, weight="normal", ha="left", spacing=1.25):
-    """Draw lines downward from y_top; return the y below the last line."""
-    lh = c.line_h(size, spacing)
-    y = y_top
+def draw_lines(c: Canvas, x, y, lines, size, color, weight=400, spacing=1.25, track=0.0, anchor="ls"):
+    """Baseline-anchored lines going down from the first baseline y; returns the baseline after the last line."""
     for ln in lines:
-        c.text(x, y, ln, size, color, weight, ha=ha, va="top")
-        y -= lh
+        c.text(x, y, ln, size, color, weight, track=track, anchor=anchor)
+        y += size * spacing
     return y
+
+
+def scene_sprite(scene: dict) -> str | None:
+    return scene.get("sprite", SCENE_SPRITE.get(scene.get("id", "")))
+
+
+def art_panel(c: Canvas, x0: float, sprite: str | None, seed: int = 7, cell: int = 16) -> None:
+    """The mosaic field on the right of a card, with the scene sprite drawn in tiles (scale 2)."""
+    w, h = int((BASE_W - x0) * c.k), c.h
+    cols, rows = int(w / (cell * c.k)) + 1, int(h / (cell * c.k)) + 1
+    sprites = []
+    if sprite:
+        sw, sh = M.SP.size(sprite)
+        sc = 2
+        pal = "attack" if sprite == "compromised" else "red"
+        sprites = [(sprite, max(0, (cols - sw * sc) // 2), max(1, int(rows * 0.42) - sh * sc // 2), sc, pal)]
+    art = M.swarm_art(w, h, cell=max(4, round(cell * c.k)), seed=seed, sprites=sprites, agents=0.05,
+                      contamination=0.25, bad=3, texture=0.45, gap=max(1, round(2 * c.k)))
+    c.paste(art.convert("RGBA"), x0, 0)
+    c.rect(x0, 0, x0 + 1, BASE_H, D.FRAME)
 
 
 # --------------------------------------------------------------------------- frame renderers
 def render_title(scene: dict, w: int, h: int, out: Path) -> None:
-    c = Canvas(w, h, NAVY)
-    c.fig.add_artist(Rectangle((0, 0), 1, 0.012, transform=c.fig.transFigure, color=AMBER))
-    tag = scene.get("kicker")
-    tsize = float(scene.get("title_size", 62))
-    while tsize > 24 and max(c.width_frac(wd, tsize, "bold") for wd in str(scene.get("title", "x")).split()) > 0.84:
-        tsize -= 2  # shrink until the longest unbreakable word (e.g. a URL) fits
-    title_lines = c.wrap(scene.get("title", ""), tsize, 0.84, "bold")
-    sub_lines = c.wrap(scene.get("subtitle", ""), 32, 0.80) if scene.get("subtitle") else []
-    author_lines = c.wrap(scene.get("author", ""), 26, 0.84, "bold") if scene.get("author") else []
-    extra_lines = c.wrap(scene.get("affiliation", ""), 22, 0.84) if scene.get("affiliation") else []
-    total = (len(title_lines) * c.line_h(tsize, 1.15) + 0.03 + len(sub_lines) * c.line_h(32)
-             + 0.07 + len(author_lines) * c.line_h(26) + len(extra_lines) * c.line_h(22))
-    y = 0.5 + SUB_ZONE / 2 + total / 2
-    x = 0.08
-    if tag:
-        c.text(x, y + 0.05, tag.upper(), 20, AMBER, "bold", va="top")
-    y = draw_lines(c, x, y, title_lines, tsize, WHITE, "bold", spacing=1.15)
-    c.fig.add_artist(Rectangle((x, y - 0.012), 0.09, 0.006, transform=c.fig.transFigure, color=AMBER))
-    y -= 0.03
-    y = draw_lines(c, x, y, sub_lines, 32, LIGHT)
-    y -= 0.07
-    y = draw_lines(c, x, y, author_lines, 26, WHITE, "bold")
-    draw_lines(c, x, y, extra_lines, 22, MUTED)
+    c = Canvas(w, h, PLATE)
+    split = 1100
+    art_panel(c, split, scene_sprite(scene), seed=sum(map(ord, str(scene.get("id", "")))) % 97)
+    x, maxw = 120, split - 220
+    tsize = float(scene.get("title_size", 132))
+    while tsize > 40 and max(c.width(wd, tsize, 600, -0.045) for wd in str(scene.get("title", "x")).split()) > maxw:
+        tsize -= 4  # shrink until the longest unbreakable word (e.g. a URL) fits
+    title_lines = c.wrap(scene.get("title", ""), tsize, maxw, 600, -0.045)
+    sub_lines = c.wrap(scene.get("subtitle", ""), 40, maxw, 500, -0.02) if scene.get("subtitle") else []
+    aff_lines = c.wrap(scene.get("affiliation", ""), 24, maxw) if scene.get("affiliation") else []
+    total = (len(title_lines) * tsize * 0.92 + 30 + len(sub_lines) * 40 * 1.12 + 70 + 34 + len(aff_lines) * 30)
+    y = (BASE_H * (1 - SUB_ZONE)) / 2 - total / 2 + tsize * 0.8
+    if scene.get("kicker"):
+        c.caps(x, y - tsize * 0.8 - 34, scene["kicker"], 20, BONE)
+    y = draw_lines(c, x, y, title_lines, tsize, INK, 600, spacing=0.92, track=-0.045)
+    y += 30 - tsize * 0.92 + 40
+    y = draw_lines(c, x, y, sub_lines, 40, MUTED, 500, spacing=1.12, track=-0.02)
+    y += 50
+    c.rect(x, y - 24, x + 10, y - 14, ACCENT)
+    if scene.get("author"):
+        c.caps(x + 24, y - 14, scene["author"], 22, INK, 500)
+    y += 34
+    draw_lines(c, x, y, aff_lines, 24, SUBTLE, spacing=1.25)
     c.save(out)
 
 
 def render_bullets(scene: dict, w: int, h: int, out: Path) -> None:
-    c = Canvas(w, h, NAVY)
-    c.fig.add_artist(Rectangle((0, 0), 1, 0.012, transform=c.fig.transFigure, color=AMBER))
-    x = 0.07
-    y = 0.90
+    c = Canvas(w, h, PLATE)
+    sp = scene_sprite(scene)
+    x, y = 120, 150
     if scene.get("kicker"):
-        c.text(x, y, scene["kicker"].upper(), 20, AMBER, "bold", va="top")
-        y -= 0.05
-    y = draw_lines(c, x, y, c.wrap(scene.get("heading", ""), 46, 0.86, "bold"), 46, WHITE, "bold", spacing=1.15)
-    y -= 0.045
+        c.rect(x, y - 16, x + 10, y - 6, ACCENT)
+        c.caps(x + 22, y - 6, scene["kicker"], 20, BONE)
+    if sp:   # the section's sprite, small, top right
+        sw, sh = M.SP.size(sp)
+        cell = 7
+        c.sprite(sp, BASE_W - 120 - sw * cell, y - 40, cell, "attack" if sp == "compromised" else "red")
+    y += 78
+    y = draw_lines(c, x, y, c.wrap(scene.get("heading", ""), 60, 1450, 600, -0.035), 60, INK, 600, spacing=1.04,
+                   track=-0.035)
+    y += 40
     bullets = list(scene.get("bullets") or [])[:5]
-    size = 31 if len(bullets) <= 4 else 29
-    gap = 0.028
+    size = 33 if len(bullets) <= 4 else 31
     for b in bullets:
-        lines = c.wrap(b, size, 0.84)
-        c.fig.add_artist(Rectangle((x + 0.002, y - c.line_h(size) * 0.62), 0.009, 0.016,
-                                   transform=c.fig.transFigure, color=AMBER))
-        y = draw_lines(c, x + 0.03, y, lines, size, LIGHT)
-        y -= gap
-    if y + gap < SUB_ZONE:
-        print(f"  warning: bullets in scene '{scene.get('id')}' run into the subtitle zone (y={y:.3f})")
+        lines = c.wrap(b, size, 1500)
+        c.rect(x + 2, y - size * 0.62, x + 2 + 12, y - size * 0.62 + 12, ACCENT)
+        y = draw_lines(c, x + 40, y, lines, size, MUTED, spacing=1.28)
+        y += 22
+    if y - size > BASE_H * (1 - SUB_ZONE):
+        print(f"  warning: bullets in scene '{scene.get('id')}' run into the subtitle zone (y={y:.0f}px)")
     c.save(out)
 
 
 def render_image(scene: dict, w: int, h: int, out: Path, missing: bool = False, layer: str = "all",
                  shrink: float = 1.0) -> tuple[float, float]:
-    """layer: 'all' = complete frame; 'figure' = figure only on white (for Ken Burns);
-    'chrome' = transparent frame with heading/caption/panel on opaque white bands, overlaid on the zoomed figure.
+    """layer: 'all' = complete frame; 'figure' = figure card only on the plate (for the stepped zoom);
+    'chrome' = transparent frame with heading/caption/panel on opaque plate bands, overlaid on the zoomed figure.
     shrink < 1 draws the figure smaller about its box centre, so a later zoom of 1/shrink fills the box exactly.
+    Print figures sit on a white card (they are drawn for paper) inside the dark plate.
     Returns the figure box centre as (x, y) fractions measured from the top-left corner."""
-    c = Canvas(w, h, None if layer == "chrome" else WHITE)
+    c = Canvas(w, h, None if layer == "chrome" else PLATE)
     draw_text = layer in ("all", "chrome")
-    top = 0.955
+    top = 70
     if scene.get("heading"):
-        lines = c.wrap(scene["heading"], 38, 0.88, "bold")
-        y = top - len(lines) * c.line_h(38, 1.15)
+        lines = c.wrap(scene["heading"], 46, 1700, 600, -0.03)
         if draw_text:
-            draw_lines(c, 0.06, top, lines, 38, INK, "bold", spacing=1.15)
-        top = y - 0.02
-    bottom = SUB_ZONE + 0.015
+            c.rect(92, top + 46 * 0.8 - 24, 104, top + 46 * 0.8 - 12, ACCENT)
+            draw_lines(c, 120, top + 46 * 0.8, lines, 46, INK, 600, spacing=1.06, track=-0.03)
+        top += len(lines) * 46 * 1.06 + 26
+    bottom = BASE_H * (1 - SUB_ZONE) - 16
     if scene.get("caption"):
-        cap_lines = c.wrap(scene["caption"], 24, 0.86)
-        cap_h = len(cap_lines) * c.line_h(24)
+        cap_lines = c.wrap(scene["caption"], 24, 1640)
+        cap_h = len(cap_lines) * 24 * 1.3
         if draw_text:
-            draw_lines(c, 0.5, bottom + cap_h, cap_lines, 24, INK_MUTED, ha="center")
-        bottom += cap_h + 0.02
-    left, right = 0.05, 0.95
+            draw_lines(c, BASE_W / 2, bottom - cap_h + 22, cap_lines, 24, MUTED, spacing=1.3, anchor="ms")
+        bottom -= cap_h + 18
+    left, right = 96, BASE_W - 96
     bullets = list(scene.get("bullets") or [])[:5]
     if bullets:
-        right = 0.66
-        px = 0.69
-        y = top - 0.01
+        right = 1270
+        px = 1320
+        y = top + 30
         for b in (bullets if draw_text else []):
-            lines = c.wrap(b, 25, 0.27)
-            c.fig.add_artist(Rectangle((px, y - c.line_h(25) * 0.62), 0.007, 0.014,
-                                       transform=c.fig.transFigure, color=AMBER))
-            y = draw_lines(c, px + 0.018, y, lines, 25, INK)
-            y -= 0.022
+            lines = c.wrap(b, 27, 500)
+            c.rect(px, y - 27 * 0.62, px + 10, y - 27 * 0.62 + 10, ACCENT)
+            y = draw_lines(c, px + 26, y, lines, 27, MUTED, spacing=1.28)
+            y += 20
     if layer == "chrome":
-        # opaque bands that mask the zoomed figure wherever text lives
-        band = dict(transform=c.fig.transFigure, color=WHITE, zorder=-1)
-        c.fig.add_artist(Rectangle((0, top), 1, 1 - top, **band))
-        c.fig.add_artist(Rectangle((0, 0), 1, bottom, **band))
-        c.fig.add_artist(Rectangle((0, 0), left, 1, **band))
-        c.fig.add_artist(Rectangle((right, 0), 1 - right, 1, **band))
-    if draw_text:
-        c.fig.add_artist(Rectangle((0, 0), 1, 0.012, transform=c.fig.transFigure, color=AMBER))
-    if layer == "chrome":
-        pass
+        # opaque plate bands that mask the zoomed figure wherever text lives, then the text on top
+        for box in [(0, 0, BASE_W, top), (0, bottom, BASE_W, BASE_H), (0, 0, left, BASE_H), (right, 0, BASE_W, BASE_H)]:
+            c.dr.rectangle([box[0] * c.k, box[1] * c.k, box[2] * c.k, box[3] * c.k], fill=M.rgb(PLATE, 255))
+        _redraw_text(c, scene, top, bottom, bullets)
     elif missing:
-        c.fig.add_artist(FancyBboxPatch((left, bottom), right - left, top - bottom,
-                                        boxstyle="round,pad=0,rounding_size=0.01",
-                                        transform=c.fig.transFigure, fc="#F1F4F8", ec="#C9D3DF", lw=2))
-        c.text((left + right) / 2, (top + bottom) / 2 + 0.03, "Figure pending", 40, INK_MUTED, "bold",
-               ha="center", va="center")
-        c.text((left + right) / 2, (top + bottom) / 2 - 0.04, str(scene.get("image", "")), 24, INK_MUTED,
-               ha="center", va="center")
+        c.rect(left, top, right, bottom, D.CARD)
+        c.dr.rectangle([left * c.k, top * c.k, right * c.k - 1, bottom * c.k - 1], outline=M.rgb(D.FRAME), width=2)
+        c.text((left + right) / 2, (top + bottom) / 2, "Figure pending", 48, MUTED, 600, anchor="ms")
+        c.caps((left + right) / 2, (top + bottom) / 2 + 50, str(scene.get("image", "")), 20, SUBTLE, anchor="ms")
     else:
-        img = mpimg.imread(ROOT / scene["image"])
-        bw, bh = (right - left) * shrink, (top - bottom) * shrink
-        ax = c.fig.add_axes([(left + right - bw) / 2, (top + bottom - bh) / 2, bw, bh])
-        ax.imshow(img, interpolation="antialiased")
-        ax.set_aspect("equal")
-        ax.axis("off")
+        img = Image.open(ROOT / scene["image"]).convert("RGB")
+        pad = 22
+        bw, bh = (right - left - 2 * pad) * shrink, (bottom - top - 2 * pad) * shrink
+        r = min(bw / img.width, bh / img.height)
+        iw, ih = img.width * r, img.height * r
+        cx, cy = (left + right) / 2, (top + bottom) / 2
+        cw_, ch_ = iw + 2 * pad * shrink, ih + 2 * pad * shrink
+        c.rect(cx - cw_ / 2, cy - ch_ / 2, cx + cw_ / 2, cy + ch_ / 2, "#ffffff")
+        c.rect(cx - cw_ / 2, cy - ch_ / 2, cx - cw_ / 2 + 6, cy - ch_ / 2 + 6, ACCENT)   # hard-corner card tick
+        res = img.resize((max(1, int(iw * c.k)), max(1, int(ih * c.k))), Image.LANCZOS)
+        c.im.paste(res, (int((cx - iw / 2) * c.k), int((cy - ih / 2) * c.k)))
     c.save(out)
-    return (left + right) / 2, 1 - (top + bottom) / 2
+    return (left + right) / 2 / BASE_W, (top + bottom) / 2 / BASE_H
+
+
+def _redraw_text(c: Canvas, scene: dict, top: float, bottom: float, bullets: list) -> None:
+    """Heading, caption and side panel for the chrome layer (drawn after the opaque bands)."""
+    t = 70
+    if scene.get("heading"):
+        lines = c.wrap(scene["heading"], 46, 1700, 600, -0.03)
+        c.rect(92, t + 46 * 0.8 - 24, 104, t + 46 * 0.8 - 12, ACCENT)
+        draw_lines(c, 120, t + 46 * 0.8, lines, 46, INK, 600, spacing=1.06, track=-0.03)
+    if scene.get("caption"):
+        cap_lines = c.wrap(scene["caption"], 24, 1640)
+        cap_h = len(cap_lines) * 24 * 1.3
+        b = BASE_H * (1 - SUB_ZONE) - 16
+        draw_lines(c, BASE_W / 2, b - cap_h + 22, cap_lines, 24, MUTED, spacing=1.3, anchor="ms")
+    if bullets:
+        y = top + 30
+        for bl in bullets:
+            lines = c.wrap(bl, 27, 500)
+            c.rect(1320, y - 27 * 0.62, 1330, y - 27 * 0.62 + 10, ACCENT)
+            y = draw_lines(c, 1346, y, lines, 27, MUTED, spacing=1.28)
+            y += 20
 
 
 def render_subtitle(text_lines: list[str], w: int, h: int, out: Path) -> None:
     c = Canvas(w, h, None)
-    size = 30
-    lh = c.line_h(size, 1.2)
-    width = max(c.width_frac(ln, size) for ln in text_lines) + 0.03
-    box_h = lh * len(text_lines) + 0.022
-    y0 = 0.025
-    c.fig.add_artist(FancyBboxPatch((0.5 - width / 2, y0), width, box_h,
-                                    boxstyle="round,pad=0,rounding_size=0.008",
-                                    transform=c.fig.transFigure, fc="black", ec="none", alpha=0.8))
-    draw_lines(c, 0.5, y0 + box_h - 0.011, text_lines, size, WHITE, ha="center", spacing=1.2)
+    size = 32
+    width = max(c.width(ln, size) for ln in text_lines) + 56
+    box_h = size * 1.25 * len(text_lines) + 26
+    y1 = BASE_H - 28
+    x0 = (BASE_W - width) / 2
+    c.rect(x0, y1 - box_h, x0 + width, y1, (11, 9, 8, 222))
+    c.rect(x0, y1 - box_h, x0 + 4, y1, ACCENT)
+    draw_lines(c, BASE_W / 2, y1 - box_h + 13 + size * 0.95, text_lines, size, INK, spacing=1.25, anchor="ms")
     c.save(out)
 
 
@@ -269,12 +305,13 @@ def render_subtitle(text_lines: list[str], w: int, h: int, out: Path) -> None:
 def chunk_narration(text: str, w: int, h: int, max_lines: int = 2) -> list[list[str]]:
     """Split narration into on-screen chunks of at most `max_lines` lines."""
     c = Canvas(w, h, None)
+    maxw = 1500
     sentences = re.split(r"(?<=[.!?;:])\s+", " ".join(str(text).split()))
     chunks: list[list[str]] = []
     for s in sentences:
         if not s:
             continue
-        lines = c.wrap(s, 30, 0.80)
+        lines = c.wrap(s, 32, maxw)
         while len(lines) > max_lines:
             # try to break the sentence at a comma near the middle of the allowed span
             head = " ".join(lines[:max_lines])
@@ -283,10 +320,9 @@ def chunk_narration(text: str, w: int, h: int, max_lines: int = 2) -> list[list[
                 part, rest = head[: cut + 1], head[cut + 2:] + " " + " ".join(lines[max_lines:])
             else:
                 part, rest = head, " ".join(lines[max_lines:])
-            chunks.append(c.wrap(part, 30, 0.80))
-            lines = c.wrap(rest.strip(), 30, 0.80)
+            chunks.append(c.wrap(part, 32, maxw))
+            lines = c.wrap(rest.strip(), 32, maxw)
         chunks.append(lines)
-    plt.close(c.fig)
     return chunks
 
 
@@ -356,7 +392,7 @@ def main() -> None:
     ap.add_argument("--scenes", type=int, default=None, help="render only the first N kept scenes")
     ap.add_argument("--allow-tbd", action="store_true", help="keep scenes with missing images or TBD narration")
     ap.add_argument("--subtitles", action="store_true", help="burn subtitles into the picture")
-    ap.add_argument("--no-xfade", action="store_true", help="hard cuts instead of crossfades")
+    ap.add_argument("--no-xfade", action="store_true", help="hard cuts instead of the stepped tile wipe")
     ap.add_argument("--voice", default=None, help="override the script's voice")
     ap.add_argument("--rate", type=int, default=None, help="override the script's speaking rate (wpm)")
     ap.add_argument("--keep-build", action="store_true", help="keep intermediate files in video/build/")
@@ -500,7 +536,8 @@ def main() -> None:
             encode_segment(["-loop", "1", "-framerate", str(fps), "-i", str(frame)], "null", sub_pngs, nf, fps,
                            seg, args.preview)
         elif kb:
-            zexpr = f"1+{zmax - 1:.4f}*on/{max(nf - 1, 1)}"
+            steps = int(sc.get("zoom_steps", 3))       # stepped punch-in, never a smooth tween
+            zexpr = f"1+{zmax - 1:.4f}*floor(on*{steps}/{max(nf, 1)})/{max(steps - 1, 1)}"
             vf = (f"zoompan=z='{zexpr}':x='{kb_cx:.4f}*iw*(1-1/zoom)':y='{kb_cy:.4f}*ih*(1-1/zoom)'"
                   f":d={nf}:s={w}x{h}:fps={fps}")
             encode_segment(["-framerate", str(fps), "-i", str(frame)], vf, sub_pngs, nf, fps, seg, args.preview)
@@ -528,7 +565,8 @@ def main() -> None:
         for k in range(1, len(segs)):
             off += kept[k - 1]["_dur"] - xf
             lab = "vout" if k == len(segs) - 1 else f"x{k}"
-            graph.append(f"[{last}][{k}:v]xfade=transition=fade:duration={xf:.3f}:offset={off:.3f}[{lab}]")
+            graph.append(f"[{last}][{k}:v]xfade=transition=custom:expr='{TILE_WIPE}':duration={xf:.3f}"
+                         f":offset={off:.3f}[{lab}]")
             last = lab
     else:
         graph.append("".join(f"[{k}:v]" for k in range(len(segs))) + f"concat=n={len(segs)}:v=1:a=0[vout]")

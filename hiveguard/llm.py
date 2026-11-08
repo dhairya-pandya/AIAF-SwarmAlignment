@@ -31,6 +31,11 @@ PROVIDERS = {
     "mock": Provider("mock", None, None, 1e9),
 }
 
+# Per-model request extras. Hybrid reasoning models get thinking switched off so the answer fits max_tokens.
+MODEL_EXTRA = {
+    "nvidia/nemotron-3.5-lightning-30b-a3b": {"chat_template_kwargs": {"enable_thinking": False}},
+}
+
 
 def parse_spec(spec: str) -> tuple[Provider, str]:
     prov, _, model = spec.partition(":")
@@ -144,7 +149,8 @@ class LLMClient:
             try:
                 r = client.chat.completions.create(model=model, messages=messages,
                                                    temperature=temperature, seed=seed,
-                                                   max_tokens=self.max_tokens)
+                                                   max_tokens=self.max_tokens,
+                                                   extra_body=MODEL_EXTRA.get(model))
                 self.stats["calls"] += 1
                 if r.usage:
                     self.stats["prompt_tokens"] += r.usage.prompt_tokens or 0

@@ -690,7 +690,7 @@ def fig_leaderboard(plt, board: list[dict], src: str, path: Path) -> None:
 
 def fig_pareto(plt, pts: pd.DataFrame, path: Path) -> None:
     from . import figstyle as S
-    fig, ax = plt.subplots(figsize=(S.HALF + 0.3, 3.0))
+    fig, ax = plt.subplots(figsize=(S.HALF + 0.3, 3.6))
     mods = sorted(set(pts.module), key=lambda m: (m != "none", m))
     for m in mods:
         g = pts[pts.module == m]
@@ -719,7 +719,7 @@ def fig_pareto(plt, pts: pd.DataFrame, path: Path) -> None:
     ax.set_ylabel("Contamination at f > 0 (share)")
     ax.set_ylim(0, 1.0)
     S.ygrid(ax)
-    ax.legend(ncol=2, loc="upper center", bbox_to_anchor=(0.5, 1.30), handletextpad=0.2, columnspacing=0.6)
+    ax.legend(ncol=3, loc="upper center", bbox_to_anchor=(0.5, -0.22), handletextpad=0.2, columnspacing=0.6)
     S.save(fig, path)
 
 
@@ -769,7 +769,8 @@ def fig_heatmap(plt, base: pd.DataFrame, path: Path) -> None:
     Ns = sorted(set(base.N))
     topo = [t for t in ["ring", "small_world", "scale_free", "star", "full"] if t in set(base.topology)]
     fig, axs = plt.subplots(1, len(Ns), figsize=(S.FULL, 3.5), squeeze=False, sharey=True)
-    cmap = plt.get_cmap("cividis")
+    from design.mpl import mosaic_cmap
+    cmap = mosaic_cmap("print")
     for ax, N in zip(axs[0], Ns):
         d = base[(base.N == N) & (base.f_eff > 0)]
         M = d.pivot_table(index="strategy", columns="topology", values="con", aggfunc="mean")
@@ -889,7 +890,8 @@ def fig_redteam(plt, raw: list[dict], path_c: Path, path_m: Path) -> None:
         warnings.simplefilter("ignore", RuntimeWarning)
         M = np.nanmean(S_, 0)
     fig, ax = plt.subplots(figsize=(S.HALF, 2.5))
-    cm = plt.get_cmap("viridis").with_extremes(bad=S.LIGHT)
+    from design.mpl import mosaic_cmap
+    cm = mosaic_cmap("print").with_extremes(bad=S.LIGHT)
     im = ax.imshow(M, cmap=cm, origin="lower", aspect="auto", vmin=0, vmax=1)
     ax.set_xticks(range(no))
     ax.set_yticks(range(nb))

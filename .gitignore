@@ -8,3 +8,6 @@ logs/
 .claude/
 figures/precal/
 figures/abm_preview/
+video/*.mp4
+video/*.srt
+video/build/

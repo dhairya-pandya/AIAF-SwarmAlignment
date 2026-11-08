@@ -1,0 +1,177 @@
+# Scene script for video/make_video.py
+#   python video/make_video.py [--preview] [--subtitles] [--allow-tbd]
+#
+# Scene types: title | bullets | image | clip
+#   title:   title, subtitle, author, affiliation, kicker
+#   bullets: heading, bullets (max 5), kicker
+#   image:   image (path from repo root), heading, caption, bullets (side panel), kenburns, zoom
+#   clip:    path (video file), start, duration, heading (used for the placeholder if missing)
+# Every scene: narration (spoken + subtitles), optional speak (TTS-only override text), min_duration.
+# Scenes whose image/clip is missing, or whose narration contains "TBD", are skipped unless --allow-tbd.
+
+voice: Samantha        # any voice from `say -v '?'`
+rate: 180              # words per minute
+fps: 30
+padding: 0.6           # seconds added to each scene's narration length
+crossfade: 0.3         # seconds; --no-xfade for hard cuts
+output: swarm_immunity.mp4
+meta_title: "Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI"
+meta_artist: Dhairya Pandya
+
+# TTS-only substitutions (subtitles keep the written form)
+pronounce:
+  IIITDM: "I I I T D M"
+  AIAF: "A I A F"
+  LLM: "L L M"
+  MAP-Elites: "map elites"
+
+scenes:
+  - id: title
+    type: title
+    kicker: "Apart × AIAF Swarm Alignment Hackathon · November 2026"
+    title: "Swarm Immunity"
+    subtitle: "How nature's collectives inspire defences for agentic AI"
+    author: "Dhairya Pandya"
+    affiliation: "Indian Institute of Information Technology, Design and Manufacturing (IIITDM) Jabalpur"
+    narration: >
+      Swarm Immunity: how nature's collectives inspire defences for agentic AI.
+      By Dhairya Pandya, IIITDM Jabalpur.
+
+  - id: problem
+    type: bullets
+    kicker: "The problem"
+    heading: "A small compromised minority can mislead the whole swarm"
+    bullets:
+      - "LLM agents increasingly work in groups: they debate, share message boards and follow lead agents"
+      - "Hugging Face incident, August 2026: about 1,200 agents coordinated through a board they built; one agent came to direct hundreds"
+      - "A jailbroken, misaligned or adversarial minority can feed the group false information"
+      - "The honest majority's own coordination rules then spread it"
+      - "Contamination = the share of honest agents that end up misled"
+    narration: >
+      LLM agents increasingly work in groups. In August 2026, in the Hugging Face incident, about twelve hundred
+      agents coordinated through a message board they had built, and one agent came to direct hundreds of others.
+      Group coordination creates a failure mode that single-model alignment cannot see. A small compromised minority
+      can feed the group false information, and the honest majority's own coordination rules then spread it. We call
+      the share of misled honest agents contamination, and ask how a swarm's coordination design determines it.
+
+  - id: idea
+    type: bullets
+    kicker: "The idea"
+    heading: "Borrow nature's coordination, and its immune-like defences"
+    bullets:
+      - "Multi-agent designs already borrow from swarms: ants, bees, birds, wolves"
+      - "Natural collectives also evolved defences against bad information, mostly negative feedback"
+      - "Pheromone evaporation · stop signals · quorum thresholds · scouts that abandon stale sources"
+      - "Swarm theory predicts: topology controls spread; committed minorities tip groups"
+      - "Do mechanism components, not animal metaphors, decide robustness?"
+    narration: >
+      Many multi-agent designs borrow from swarm intelligence: ants, bees, birds and wolves. But natural
+      collectives also evolved defences against bad information, mostly negative feedback: pheromone evaporation,
+      stop signals, quorum thresholds. We ask which of these ideas protect LLM swarms, and whether robustness depends
+      on mechanism components rather than animal metaphors.
+
+  - id: method
+    type: image
+    heading: "Swarm Immunity: a pre-registered benchmark"
+    image: figures/paper/fig0_overview.png
+    caption: "Hidden-profile task · compromised fraction f · 11 strategies · 6 defence modules · contamination, accuracy, tipping point, spread speed"
+    kenburns: true
+    zoom: 1.05
+    narration: >
+      Swarm Immunity is a pre-registered benchmark. Agents solve a hidden-profile task: only the pooled facts
+      reveal the correct option, so communication is necessary, and corruptible. A fraction of agents is compromised
+      and pushes one wrong target, with one of five attack types. Honest agents coordinate with one of eleven
+      strategies, optionally with a defence module, across five network topologies.
+
+  - id: strategies
+    type: image
+    heading: "Eleven strategies, tagged by mechanism"
+    image: figures/paper/fig_strategy_components.png
+    caption: "Filled cells mark the mechanism components each strategy uses, grouped by metaphor family"
+    kenburns: true
+    zoom: 1.04
+    narration: >
+      The strategies range from voting and free debate to particle swarms, ant-colony stigmergy, bee
+      colonies, a honeybee quorum, a wolf-pack hierarchy, fireflies and boids. Each is tagged with eight mechanism
+      components, so we can test whether vulnerability groups by mechanism, or by animal.
+
+  - id: defences
+    type: bullets
+    kicker: "Defences"
+    heading: "Six bio-inspired defence modules, scored the AI-control way"
+    bullets:
+      - "Evaporation (pheromone decay) and stop signals (honeybees)"
+      - "Quorum on first-hand evidence (quorum sensing)"
+      - "Uninformed dilution (schooling fish) and population diversity"
+      - "Sparse topology: rewire the communication graph to a ring"
+      - "Value = contamination removed per unit of accuracy lost when nobody attacks"
+    narration: >
+      Six defence modules borrow nature's negative feedback: evaporation, stop signals, a quorum on
+      first-hand evidence, uninformed dilution, diversity and a sparse topology. Following AI control, each is scored
+      twice: contamination removed under attack, and accuracy lost when nobody attacks.
+
+  - id: cascade
+    type: image
+    heading: "How contamination spreads (agent-based twin)"
+    image: figures/paper/fig_cascade_abm.png
+    caption: "Illustration from the agent-based twin, not LLM data: free debate, small-world network, 50 agents, 5 attackers fabricating evidence"
+    kenburns: true
+    zoom: 1.04
+    narration: >
+      LLM swarms are expensive, so every strategy has an agent-based twin, calibrated on pilot LLM runs and
+      then frozen. In this simulated run, five attackers fabricate evidence, and contamination climbs from sixteen to
+      forty-seven percent in five rounds. The twin powers a large screen and red-team search for worst-case attacks,
+      which we replay on LLM agents.
+
+  # ---------------- RESULTS (skipped until the figures exist and the narration is written)
+  - id: results_tipping
+    type: image
+    heading: "Result: contamination vs. attacker fraction"
+    image: figures/fig3_con_vs_f.png
+    kenburns: true
+    narration: "[RESULTS NARRATION TBD]"
+
+  - id: results_modules
+    type: image
+    heading: "Result: which defences are worth their cost"
+    image: figures/fig5_modules_components.png
+    kenburns: true
+    narration: "[RESULTS NARRATION TBD]"
+
+  - id: results_redteam
+    type: image
+    heading: "Result: red-team attacks and transfer to LLM agents"
+    image: figures/fig6_redteam.png
+    kenburns: true
+    narration: "[RESULTS NARRATION TBD]"
+
+  # Optional screen recording of the replay viewer (skipped while the file is missing)
+  # - id: replay_demo
+  #   type: clip
+  #   path: video/assets/replay_viewer.mp4
+  #   heading: "Replay viewer"
+  #   narration: "..."
+
+  - id: reproducibility
+    type: bullets
+    kicker: "Reproducibility"
+    heading: "Every number can be regenerated from the repository"
+    bullets:
+      - "Pre-registered: hypotheses H0–H10 committed before any code; every deviation logged"
+      - "Every LLM call cached, keyed by a hash of model, prompt, seed and temperature"
+      - "Every run logged turn by turn: prompt, raw response, parsed output, choice"
+      - "Replay any LLM run byte-identically from the cache, with no API key and no cost"
+      - "Re-analyse, replay, or re-run: three levels of reproduction"
+    narration: >
+      The hypotheses were committed before any code, and every deviation is logged. Every LLM call is
+      cached and every run is logged, so anyone can replay a run with no API key and get a byte-identical log.
+
+  - id: closing
+    type: title
+    kicker: "Code, logs, cache and pre-registration"
+    title: "github.com/dhairya-pandya/AIAF-SwarmAlignment"
+    subtitle: "Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI"
+    author: "Dhairya Pandya"
+    affiliation: "IIITDM Jabalpur · Apart × AIAF Swarm Alignment Hackathon 2026"
+    narration: >
+      Code, logs and the response cache are open at the repository on screen. Thank you for watching.

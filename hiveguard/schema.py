@@ -43,6 +43,18 @@ class Output(BaseModel):
         words = v.split()
         return " ".join(words[:60])
 
+    @field_validator("claims", mode="before")
+    @classmethod
+    def _claims(cls, v):
+        # a malformed claim (e.g. a weighted total like value=73) is dropped, not the whole reply
+        keep = []
+        for c in v or []:
+            try:
+                keep.append(Claim.model_validate(c))
+            except ValidationError:
+                pass
+        return keep
+
     @field_validator("endorse", "stop", mode="before")
     @classmethod
     def _ids(cls, v):

@@ -32,8 +32,10 @@ PROVIDERS = {
 }
 
 # Per-model request extras (e.g. {"chat_template_kwargs": {"enable_thinking": False}}). Empty: models think by
-# default, which the pilot needed for correct weighted sums (DEVIATIONS D16).
-MODEL_EXTRA: dict[str, dict] = {}
+# default; the pilot switched it off for throughput (DEVIATIONS D17).
+MODEL_EXTRA: dict[str, dict] = {
+    "nvidia/nemotron-3.5-lightning-30b-a3b": {"chat_template_kwargs": {"enable_thinking": False}},
+}
 
 
 def parse_spec(spec: str) -> tuple[Provider, str]:
@@ -98,7 +100,7 @@ def _mock_reply(messages: list[dict], seed: int) -> str:
 
 class LLMClient:
     def __init__(self, cache_path: str | Path = ".cache/llm.sqlite", replay_only: bool = False,
-                 max_tokens: int = 8000):
+                 max_tokens: int = 1200):
         self.cache = Cache(cache_path)
         self.replay_only = replay_only
         self.max_tokens = max_tokens
@@ -144,7 +146,7 @@ class LLMClient:
     def _call(self, p: Provider, model: str, messages, seed, temperature) -> str:
         client = self._client(p)
         delay = 2.0
-        for attempt in range(8):
+        for attempt in range(14):
             self._wait_slot(p)
             try:
                 r = client.chat.completions.create(model=model, messages=messages,

@@ -118,7 +118,8 @@ class LLMEnv:
         w = f", weight {self.m1_weight(j):.2f}" if "M1" in self.cfg.modules else ""
         lines = [f"[{self.disp[j]}]{extra} chose {o.choice} (confidence {o.confidence:.2f}{w}): \"{o.message}\""]
         for cid, c in zip(self.claim_ids[r][j], o.claims):
-            lines.append(f"    [{cid}] {c.option}.{c.attribute} = {c.value} (source: {c.source})")
+            lines.append(f"    [{cid}] {c.option}.{c.attribute} = {c.value}{self.task.points(c.attribute, c.value)} "
+                         f"(source: {c.source})")
         self._note_support(viewer, self.disp[j], o.choice, o.claims)
         return "\n".join(lines)
 
@@ -126,13 +127,14 @@ class LLMEnv:
         tail = f", {extra}" if extra else ""
         if p["source"] == "own":
             self.shown.setdefault(viewer, {}).setdefault(self.task.option_index(p["option"]), set()).add(p["display"])
-        return (f"[{p['id']}] {p['option']}.{p['attribute']} = {p['value']} "
+        return (f"[{p['id']}] {p['option']}.{p['attribute']} = {p['value']}{self.task.points(p['attribute'], p['value'])} "
                 f"(source: {p['source']}, posted by {p['display']}{tail})")
 
     def fmt_dance(self, viewer: int, d: dict) -> str:
         oid = self.task.option_id(d["option"])
         self._note_support(viewer, d["display"], oid, d["claims"])
-        cl = "; ".join(f"{c.option}.{c.attribute} = {c.value} ({c.source})" for c in d["claims"][:4])
+        cl = "; ".join(f"{c.option}.{c.attribute} = {c.value}{self.task.points(c.attribute, c.value)} ({c.source})"
+                       for c in d["claims"][:4])
         return (f"[{d['id']}] {d['display']} dances for {oid} (strength {d['strength']:.2f}): "
                 f"\"{d['message']}\"" + (f" Claims: {cl}" if cl else ""))
 

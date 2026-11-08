@@ -60,9 +60,18 @@ class Task:
             s[f.option] += self.weights[f.attribute] * (f.value - NEUTRAL)
         return s
 
+    def points(self, attribute: str, value: int) -> str:
+        """' (+6 pts)': weight x (value - 5), shown next to every fact and claim (DEVIATIONS D17)."""
+        a = attribute.strip().lower()
+        if a not in self.attributes:
+            return ""
+        p = int(self.weights[self.attributes.index(a)] * (value - NEUTRAL))
+        return f" ({p:+d} pts)"
+
     def fact_text(self, fid: int) -> str:
         f = self.facts[fid]
-        return f"{self.option_id(f.option)}.{self.attributes[f.attribute]} = {f.value}"
+        a = self.attributes[f.attribute]
+        return f"{self.option_id(f.option)}.{a} = {f.value}{self.points(a, f.value)}"
 
 
 def _option_names(rng: np.random.Generator, n: int) -> list[str]:

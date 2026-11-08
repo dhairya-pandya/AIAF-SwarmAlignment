@@ -23,7 +23,9 @@ def task_block(task: Task) -> str:
         f"An option's quality is the weighted sum of its attribute values, with these public weights: "
         f"{weights}.\n"
         "Facts about attribute values are split across agents; nobody sees all of them. "
-        "Treat an unknown value as 5 (average)."
+        "Treat an unknown value as 5 (average). Every fact shows its points, weight x (value - 5): "
+        "an option's total points is the sum of its known facts' points (unknown facts count 0), "
+        "and the best option has the highest total. Count each distinct fact once."
     )
 
 

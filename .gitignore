@@ -15,3 +15,5 @@ results/logs/analyze_precal.log
 results/logs/redteam_precal.log
 results/logs/stageA_precal.log
 logs/_replay/
+site/.vercel/
+.DS_Store

@@ -49,7 +49,9 @@ CODE_AND_DATA = [
     "**Data and replay:** every LLM call is stored in the committed response cache "
     "(`.cache/llm.sqlite`), so any logged run can be replayed byte-for-byte from that "
     "cache without an API key or cost: `python -m hiveguard.run replay <run_id>`. "
-    "Run logs and aggregated results are in `logs/` and `results/`.",
+    "Run logs and aggregated results are in `logs/` and `results/`; all 402 logged LLM runs were "
+    "re-checked and replay identically (`results/replay_check.csv`).",
+    "**Interactive results and replay viewer:** [https://swarm-immunity.vercel.app](https://swarm-immunity.vercel.app)",
 ]
 
 

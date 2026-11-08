@@ -11,6 +11,8 @@ Hackathon (Nov 6–8, 2026).
 
 **Status: work in progress.** No results have been produced yet.
 
+**Interactive results and replay viewer:** https://swarm-immunity.vercel.app
+
 ## Setup
 
 ```bash

@@ -14,22 +14,35 @@
 
 ## 1. Introduction
 
-In August 2026, about 1,200 AI agents in the Hugging Face incident coordinated through a message board they built in a shared directory, and a single agent came to direct hundreds of others [I1]. Swarm-intelligence research has studied both of these mechanisms for three decades. Coordination through traces left in a shared medium is called *stigmergy* [A10, A11]. A small number of individuals steering a large group is called *emergent leadership* [A8, C1]. The same research makes falsifiable predictions about how a compromised minority spreads through a group:
+LLM agents increasingly work in groups. They debate to answer questions, share scratchpads and message boards to divide work, and follow lead agents in planning hierarchies. In August 2026, about 1,200 agents in the Hugging Face incident coordinated through a message board they had built in a shared directory, and one agent came to direct hundreds of others [I1]. Group coordination creates a failure mode that single-model alignment cannot see. A small compromised minority, whether jailbroken, misaligned or adversarial, can feed the group false information. The honest majority's own coordination rules then spread it. We call the resulting share of misled honest agents *contamination*. This paper asks how a swarm's coordination design determines its contamination.
 
-- the communication topology sets how fast influence spreads [A4, C9, G5];
-- committed minorities flip group decisions above a tipping fraction of about 10–25% [C7, C8, E9];
-- adding uninformed members hands control back to the majority [C2, G7].
+Many multi-agent designs are borrowed, explicitly or not, from swarm intelligence: particle swarms, ant-colony stigmergy, bee foraging, wolf-pack hierarchies, flocking [A1–A8]. Natural collectives also evolved defences against bad information, and they are mostly forms of negative feedback:
+- pheromone evaporation [A2];
+- honeybee stop signals [C3];
+- quorum thresholds [C4, C5];
+- scouts that abandon stale sources [A6].
 
-Nature also supplies safety mechanisms, and they are all forms of negative feedback: pheromone evaporation [A2], stop signals [C3], quorum thresholds [C4, C5] and scouts that abandon stale sources [A6].
+Swarm theory also makes falsifiable predictions about compromise:
+- topology controls spread [A4, G5];
+- committed minorities flip groups above a tipping fraction [C7, C8, E9];
+- uninformed members return control to the majority [C2, G7].
 
-We ask which of these coordination algorithms, applied to LLM agents, contain a compromised minority best, and at what cost in usefulness. **HiveGuard** implements 11 swarm-intelligence coordination strategies for LLM agents. Each strategy has an agent-based-model (ABM) twin with the same parameters. We attack them with 5 types of compromised agent, placed at random, on network hubs, or by 5 red-team search algorithms. We then measure contamination, accuracy, spread speed and tipping points across 5 topologies and 6 add-on defence modules.
+Yet the safety literature on LLM collectives has tested these ideas only piecemeal:
+- topology alone [G5];
+- capability rather than safety [E2, E3];
+- infection-style jailbreaks that ignore coordination rules [G2, G3].
+
+Metaheuristics researchers have argued that many animal metaphors repackage a few shared components [B1, B2]. No one has asked whether those *components*, rather than the metaphors, decide how robust a swarm is.
+
+We build **Swarm Immunity**, a pre-registered benchmark that answers this question for LLM swarms. Agents solve a hidden-profile decision task, in which nobody can find the correct option alone, so communication is necessary and corruptible. They solve it under 11 coordination strategies drawn from swarm intelligence. A fraction of agents is compromised with one of five attack types. Attackers are placed at random, on hubs, or by red-team metaheuristics that search for the worst-case placement. We measure contamination, accuracy, spread speed and tipping points across five topologies, and we test six bio-inspired defence modules for both protection and usefulness cost. Real LLM swarms are expensive, so every strategy also has an agent-based twin. We calibrate the twin on pilot LLM runs, use it for a 300k-run screen and the red-team search, and then check it against held-out LLM runs.
+
+[TBD: one paragraph of headline findings, numbers from `results/results.json` only.]
 
 **Contributions.**
-1. A seeded, cached and replayable testbed for LLM swarms that runs 11 coordination strategies, each paired with a cheap ABM twin (Track 1).
-2. A pre-registered comparison of these strategies under attack. The hypotheses, metrics and analysis plan were written before the sprint and committed before any experiment ran; every later change is logged (Track 2).
-3. An ablation of bio-inspired negative-feedback defences, scored in AI-control style as safety vs. usefulness [H1] (Track 4).
-4. Red-team metaheuristics (a genetic algorithm, binary PSO and MAP-Elites) that search for worst-case attacker placement, onset round and behaviour, compared at equal evaluation budgets.
-5. An estimate of how far a calibrated ABM can stand in for LLM swarms, and where it breaks down.
+1. **A safety comparison of bio-inspired coordination for LLM swarms:** 11 strategies × 5 attacks × 5 topologies × 6 defences. It is pre-registered (hypotheses H0–H10 fixed before any experiment), with every deviation logged.
+2. **A component-level account of robustness.** A permutation test (H10) asks whether vulnerability profiles group by mechanism (quorum, negative feedback, shared medium, hierarchy) or by animal metaphor. This turns a methodological critique of metaheuristics [B1, B2] into a safety finding.
+3. **Defences scored the AI-control way** [H1]: contamination removed against accuracy lost when nobody attacks. Red-team metaheuristics (GA, binary PSO, MAP-Elites) search for worst-case attacks, and we test whether those attacks transfer from the twin to LLM agents.
+4. **A reproducible testbed.** Every LLM call is cached and logged, and every run replays byte-for-byte without an API key. The calibrated twin comes with a measured fidelity estimate against the LLM runs, so others can screen swarm designs cheaply.
 
 ## 2. Related work
 

@@ -70,8 +70,9 @@ class Cache:
             self.db.commit()
 
 
-def cache_key(provider: str, model: str, messages: list[dict], seed: int, temperature: float) -> str:
-    blob = json.dumps([provider, model, messages, seed, temperature], sort_keys=True)
+def cache_key(provider: str, model: str, messages: list[dict], seed: int, temperature: float,
+              max_tokens: int, extra: dict | None = None) -> str:
+    blob = json.dumps([provider, model, messages, seed, temperature, max_tokens, extra or {}], sort_keys=True)
     return hashlib.sha256(blob.encode()).hexdigest()
 
 
@@ -98,7 +99,7 @@ def _mock_reply(messages: list[dict], seed: int) -> str:
 
 class LLMClient:
     def __init__(self, cache_path: str | Path = ".cache/llm.sqlite", replay_only: bool = False,
-                 max_tokens: int = 500):
+                 max_tokens: int = 1200):
         self.cache = Cache(cache_path)
         self.replay_only = replay_only
         self.max_tokens = max_tokens
@@ -127,7 +128,7 @@ class LLMClient:
 
     def complete(self, spec: str, messages: list[dict], seed: int, temperature: float) -> str:
         p, model = parse_spec(spec)
-        k = cache_key(p.name, model, messages, seed, temperature)
+        k = cache_key(p.name, model, messages, seed, temperature, self.max_tokens, MODEL_EXTRA.get(model))
         hit = self.cache.get(k)
         if hit is not None:
             self.stats["hits"] += 1

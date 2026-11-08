@@ -53,3 +53,7 @@ This is a lab notebook kept in time order (IST). It records what was run, what c
   - Shape: S4, S5, S9 and S10 rise gradually with f. S2, S6, S7 and S8 saturate by f ≈ 0.05–0.15.
 - **02:33** P2 core 3-seed block done (84 runs). The pipeline moved on to the 6-seed extension.
 - **02:45** Exploratory S11 (vampire-bat reciprocity / reputation) is being built in an isolated worktree. It is not pre-registered and will be excluded from confirmatory tests (D22, pending).
+- **02:40** Spend after the 3-seed core plus 29 extension runs: $1.82. That is about $0.00026/call, since N=12 prompts are longer than the pilot's. Projected total was about $8.3 against $10 of credit, so:
+  - added a budget guard: stop before any block once spend exceeds $9.30;
+  - cut the optional Tier-2 block to 3 seeds.
+  - The pipeline was restarted. Completed calls are cached, so no work was lost.

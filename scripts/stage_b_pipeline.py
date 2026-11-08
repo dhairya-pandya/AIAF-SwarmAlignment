@@ -20,9 +20,25 @@ PY = [sys.executable, "-u", "-m", "hiveguard.run", "stageB", "--models", MODEL, 
       "--parallel-runs", "8"]
 
 
-def run(block: str, out: str, *extra: str) -> None:
-    print(f"\n=== {block} -> {out} {' '.join(extra)} [{time.strftime('%H:%M:%S')}]", flush=True)
-    subprocess.run(PY + ["--block", block, "--seeds", str(SEEDS), "--out", out, *extra], check=True)
+BUDGET_STOP = 9.3   # USD; stop before a block when the key's spend passes this (credit is $10)
+
+
+def spend() -> float:
+    import json
+    import os
+    import urllib.request
+    req = urllib.request.Request("https://openrouter.ai/api/v1/credits",
+                                 headers={"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}"})
+    return float(json.load(urllib.request.urlopen(req, timeout=30))["data"]["total_usage"])
+
+
+def run(block: str, out: str, *extra: str, seeds: int = SEEDS) -> None:
+    used = spend()
+    print(f"\n=== {block} -> {out} {' '.join(extra)} seeds={seeds} spend=${used:.2f} "
+          f"[{time.strftime('%H:%M:%S')}]", flush=True)
+    if used > BUDGET_STOP:
+        raise SystemExit(f"budget guard: spend ${used:.2f} > ${BUDGET_STOP}; stopping before {block}")
+    subprocess.run(PY + ["--block", block, "--seeds", str(seeds), "--out", out, *extra], check=True)
 
 
 def best_worst(core_csv: str) -> tuple[str, str]:
@@ -36,6 +52,8 @@ def best_worst(core_csv: str) -> tuple[str, str]:
 
 
 def run_m5(best: str, worst: str) -> None:
+    if spend() > BUDGET_STOP:
+        raise SystemExit("budget guard before M5")
     """M5: honest agents split across three model families; compared with the single-model core runs."""
     from hiveguard.config import RunConfig
     from hiveguard.llm_runs import run_block
@@ -57,7 +75,7 @@ def main() -> None:
         while not Path(f).exists():   # the ABM red-team search may still be running
             time.sleep(30)
     run("confirm", "results/stageB_confirm.csv", "--strategies", worst, best, "--redteam", "results/redteam_k1.json")
-    run("tier2", "results/stageB_tier2.csv")
+    run("tier2", "results/stageB_tier2.csv", seeds=3)   # optional block, cut to 3 seeds for budget (D20)
     print(f"\n=== all blocks done [{time.strftime('%H:%M:%S')}]", flush=True)
 
 

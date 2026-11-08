@@ -71,3 +71,12 @@ This is a lab notebook kept in time order (IST). It records what was run, what c
   - **Caveats:**
     - The cross-strategy correlation of visible claims with contamination is weak (Spearman −0.18, n=7 cells).
     - The parser does not count S4 board posts or S9 dance claims (different id format), so the claim stays limited to S2.
+- **03:28–03:57 P3/P4 blocks.** Cell means below; formal tests come in the analysis.
+  - **Modules, f=3/12** (none = core: S4 con 0.17, S7 con 0.61):
+    - **S7 + M3 quorum: con 0.33**, with accuracy at f=0 at 0.67 vs 0.68 for none, so no usefulness cost.
+    - S7 + M1 evaporation: con 0.93, so evaporation makes leader capture *worse*.
+    - S7 + M2: con 0.72. S7 + M4: con 0.63.
+    - S4 + M3: con 0.11 vs 0.17 for none.
+  - **M5, three model families:** S7 con 0.50 vs 0.61 single-model; S4 con 0.24 vs 0.17. M5 cost about $2 because the other models are pricier.
+  - **Attacks on S4, f=1/12:** A1 0.23, A2 0.21, A3 0.18, A4 0.20, A5 0.11. All are close to S4's f=0 floor of about 0.12–0.17, so stigmergy is insensitive to attack type.
+  - Spend after attacks: $6.79. Confirm block started.

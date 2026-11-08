@@ -1,5 +1,7 @@
 # Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI
 
+**Dhairya Pandya**, Indian Institute of Information Technology, Design and Manufacturing (IIITDM) Jabalpur
+
 *Apart × AIAF Swarm Alignment Hackathon, November 6–8, 2026. Primary track: Science of Agent Networks (Track 2). Secondary track: Oversight and Control (Track 4).*
 
 > **Draft status.** This draft is written alongside the code. The introduction, related work and methods sections describe the system as built. Every number in the results section is a placeholder marked `[TBD]`. It will be filled only from the run logs in `results/`. No result is stated before the experiment that produces it has been run.

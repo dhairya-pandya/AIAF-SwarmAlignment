@@ -1,0 +1,302 @@
+{
+  "I1": {
+    "number": 1,
+    "short": "METR (2026)",
+    "verified": true,
+    "url": "https://metr.org/hugging-face-incident-report-aug-2026.pdf"
+  },
+  "A10": {
+    "number": 2,
+    "short": "Theraulaz & Bonabeau (1999)",
+    "verified": true,
+    "url": "https://doi.org/10.1162/106454699568700"
+  },
+  "A11": {
+    "number": 3,
+    "short": "Heylighen (2016)",
+    "verified": true,
+    "url": "https://doi.org/10.1016/j.cogsys.2015.12.002"
+  },
+  "A8": {
+    "number": 4,
+    "short": "Mirjalili et al. (2014)",
+    "verified": true,
+    "url": "https://doi.org/10.1016/j.advengsoft.2013.12.007"
+  },
+  "C1": {
+    "number": 5,
+    "short": "Couzin et al. (2005)",
+    "verified": true,
+    "url": "https://doi.org/10.1038/nature03236"
+  },
+  "A4": {
+    "number": 6,
+    "short": "Kennedy & Mendes (2002)",
+    "verified": true,
+    "url": "https://doi.org/10.1109/CEC.2002.1004493"
+  },
+  "C9": {
+    "number": 7,
+    "short": "Pastor-Satorras & Vespignani (2001)",
+    "verified": true,
+    "url": "https://doi.org/10.1103/PhysRevLett.86.3200"
+  },
+  "G5": {
+    "number": 8,
+    "short": "Yu et al. (2024)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2410.15686"
+  },
+  "C7": {
+    "number": 9,
+    "short": "Centola et al. (2018)",
+    "verified": true,
+    "url": "https://doi.org/10.1126/science.aas8827"
+  },
+  "C8": {
+    "number": 10,
+    "short": "Xie et al. (2011)",
+    "verified": true,
+    "url": "https://doi.org/10.1103/PhysRevE.84.011130"
+  },
+  "E9": {
+    "number": 11,
+    "short": "Ashery et al. (2025)",
+    "verified": true,
+    "url": "https://doi.org/10.1126/sciadv.adu9368"
+  },
+  "C2": {
+    "number": 12,
+    "short": "Couzin et al. (2011)",
+    "verified": true,
+    "url": "https://doi.org/10.1126/science.1210280"
+  },
+  "G7": {
+    "number": 13,
+    "short": "Becker et al. (2026)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2606.16710"
+  },
+  "A2": {
+    "number": 14,
+    "short": "Dorigo et al. (1996)",
+    "verified": true,
+    "url": "https://doi.org/10.1109/3477.484436"
+  },
+  "C3": {
+    "number": 15,
+    "short": "Seeley et al. (2012)",
+    "verified": true,
+    "url": "https://doi.org/10.1126/science.1210361"
+  },
+  "C4": {
+    "number": 16,
+    "short": "Seeley & Visscher (2004)",
+    "verified": true,
+    "url": "https://doi.org/10.1007/s00265-004-0814-5"
+  },
+  "C5": {
+    "number": 17,
+    "short": "Pratt et al. (2002)",
+    "verified": true,
+    "url": "https://doi.org/10.1007/s00265-002-0487-x"
+  },
+  "A6": {
+    "number": 18,
+    "short": "Karaboga & Basturk (2007)",
+    "verified": true,
+    "url": "https://doi.org/10.1007/s10898-007-9149-x"
+  },
+  "H1": {
+    "number": 19,
+    "short": "Greenblatt et al. (2024)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2312.06942"
+  },
+  "A3": {
+    "number": 20,
+    "short": "Kennedy & Eberhart (1995)",
+    "verified": true,
+    "url": "https://doi.org/10.1109/ICNN.1995.488968"
+  },
+  "A7": {
+    "number": 21,
+    "short": "Yang (2009)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/1003.1466"
+  },
+  "A9": {
+    "number": 22,
+    "short": "Bonabeau et al. (1996)",
+    "verified": true,
+    "url": "https://doi.org/10.1098/rspb.1996.0229"
+  },
+  "A1": {
+    "number": 23,
+    "short": "Reynolds (1987)",
+    "verified": true,
+    "url": "https://doi.org/10.1145/37402.37406"
+  },
+  "B1": {
+    "number": 24,
+    "short": "Sörensen (2015)",
+    "verified": true,
+    "url": "https://doi.org/10.1111/itor.12001"
+  },
+  "B2": {
+    "number": 25,
+    "short": "Camacho-Villalón et al. (2023)",
+    "verified": true,
+    "url": "https://doi.org/10.1111/itor.13176"
+  },
+  "C6": {
+    "number": 26,
+    "short": "Valentini et al. (2017)",
+    "verified": true,
+    "url": "https://doi.org/10.3389/frobt.2017.00009"
+  },
+  "C13": {
+    "number": 27,
+    "short": "Stasser & Titus (1985)",
+    "verified": true,
+    "url": "https://doi.org/10.1037/0022-3514.48.6.1467"
+  },
+  "D3": {
+    "number": 28,
+    "short": "Strobel et al. (2018)",
+    "verified": true,
+    "url": "https://ifaamas.csc.liv.ac.uk/Proceedings/aamas2018/pdfs/p541.pdf"
+  },
+  "D2": {
+    "number": 29,
+    "short": "Higgins et al. (2009)",
+    "verified": true,
+    "url": "https://doi.org/10.1109/ICAS.2009.62"
+  },
+  "E1": {
+    "number": 30,
+    "short": "Feng et al. (2025)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2410.11163"
+  },
+  "E2": {
+    "number": 31,
+    "short": "Ruan et al. (2025)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2505.04364"
+  },
+  "E3": {
+    "number": 32,
+    "short": "Rahman et al. (2025)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2506.14496"
+  },
+  "E4": {
+    "number": 33,
+    "short": "Jimenez-Romero et al. (2025)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2503.03800"
+  },
+  "E8": {
+    "number": 34,
+    "short": "Pal et al. (2026)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2608.26081"
+  },
+  "G2": {
+    "number": 35,
+    "short": "Gu et al. (2024)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2402.08567"
+  },
+  "G3": {
+    "number": 36,
+    "short": "Lee & Tiwari (2024)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2410.07283"
+  },
+  "G4": {
+    "number": 37,
+    "short": "Ju et al. (2026)",
+    "verified": true,
+    "url": "https://doi.org/10.1007/s11432-024-4663-2"
+  },
+  "G6": {
+    "number": 38,
+    "short": "Huang et al. (2024)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2408.00989"
+  },
+  "G10": {
+    "number": 39,
+    "short": "Rosser & Foerster (2025)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2502.00757"
+  },
+  "G8": {
+    "number": 40,
+    "short": "Motwani et al. (2024)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2402.07510"
+  },
+  "B3": {
+    "number": 41,
+    "short": "Wolpert & Macready (1997)",
+    "verified": true,
+    "url": "https://doi.org/10.1109/4235.585893"
+  },
+  "F5": {
+    "number": 42,
+    "short": "Sharma et al. (2024)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2310.13548"
+  },
+  "F1": {
+    "number": 43,
+    "short": "Wang et al. (2023)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2203.11171"
+  },
+  "F2": {
+    "number": 44,
+    "short": "Du et al. (2024)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2305.14325"
+  },
+  "C12": {
+    "number": 45,
+    "short": "Bikhchandani et al. (1992)",
+    "verified": true,
+    "url": "https://doi.org/10.1086/261849"
+  },
+  "H5": {
+    "number": 46,
+    "short": "Chan et al. (2024)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2406.12137"
+  },
+  "A12": {
+    "number": 47,
+    "short": "Holland (1992)",
+    "verified": true,
+    "url": "https://doi.org/10.1038/scientificamerican0792-66"
+  },
+  "A5": {
+    "number": 48,
+    "short": "Kennedy & Eberhart (1997)",
+    "verified": true,
+    "url": "https://doi.org/10.1109/ICSMC.1997.637339"
+  },
+  "A13": {
+    "number": 49,
+    "short": "Mouret & Clune (2015)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/1504.04909"
+  },
+  "H2": {
+    "number": 50,
+    "short": "Samvelyan et al. (2024)",
+    "verified": true,
+    "url": "https://arxiv.org/abs/2402.16822"
+  }
+}

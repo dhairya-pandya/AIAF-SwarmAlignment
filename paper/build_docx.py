@@ -1170,6 +1170,7 @@ def plan_document(paper: Paper) -> tuple[list, list[str], list[Block]]:
     limitations = take(r"limitation")
     conclusion = take(r"conclusion")
     references = take(r"^references?$")
+    llm_usage = take(r"llm usage")
     appendices = [s for s in paper.sections if s.title.lower().startswith("appendix")]
     for a in appendices:
         used.add(id(a))
@@ -1240,8 +1241,6 @@ def plan_document(paper: Paper) -> tuple[list, list[str], list[Block]]:
     plan.append(("h3", LIMITATIONS_APPENDIX_HEADING))
     for a in ethics:
         plan.append(("blocks_h3", a.blocks))
-    if lim_part:
-        plan.append(("blocks_h3", [Block("h4", "Limitations")] + lim_part))
     if not ethics:
         plan.append(("todo", "[TODO: dual-use and ethical considerations: no matching appendix in paper.md]"))
         notes.append("no dual-use/ethics appendix in md")
@@ -1253,7 +1252,10 @@ def plan_document(paper: Paper) -> tuple[list, list[str], list[Block]]:
         plan.append(("blocks_h3", a.blocks))
 
     plan.append(("h2", "LLM Usage Statement"))
-    plan.append(("todo", "[Author to write]"))
+    if llm_usage is not None and llm_usage.blocks:
+        plan.append(("blocks", llm_usage.blocks))
+    else:
+        plan.append(("todo", "[Author to write]"))
 
     for s in paper.sections:
         if id(s) not in used:

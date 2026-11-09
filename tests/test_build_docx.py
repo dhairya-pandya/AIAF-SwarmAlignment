@@ -213,7 +213,7 @@ def test_section_mapping(synth):
     assert bd.REPO_URL in text
     assert "replay byte-for-byte" in text
     # limitations appear both in the main body and in the required appendix section
-    assert text.count("Small. Only N=12.") == 2
+    assert text.count("Small. Only N=12.") == 1
     paras = [p.text for p in doc.paragraphs]
     i = paras.index(bd.LIMITATIONS_APPENDIX_HEADING)
     assert "Benign task." in paras[i + 1]

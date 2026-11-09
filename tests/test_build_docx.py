@@ -152,7 +152,7 @@ def test_title_author_abstract(synth):
     doc, _ = synth
     tblt = "\n".join(Paragraph(p, None).text for p in doc.tables[0]._tbl.iter(qn("w:p")))
     assert "A Tiny Test Paper" in tblt
-    assert "Ada Lovelace — AEI London" in tblt
+    assert "Ada Lovelace, AEI London" in tblt
     assert "We study swarms [1]" in tblt
 
 
@@ -172,7 +172,7 @@ def test_citations_numbered_and_compressed(synth):
 
 def test_math_converted(synth):
     doc, _ = synth
-    text = _all_text(doc)
+    text = _all_text(doc).replace("\u00a0", " ")   # inline math uses non-breaking spaces
     assert "Qo = Σawavo,a" in text
     assert "o* = argmaxoQo" in text
     assert "a/b" in text

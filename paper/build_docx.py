@@ -247,7 +247,7 @@ def parse_markdown(text: str) -> Paper:
 
 
 def author_line(front: list[str]) -> str:
-    """'**Name**, Long Affiliation (ACR) City' -> 'Name — ACR City'."""
+    """'**Name**, Long Affiliation (ACR) City' -> 'Name, ACR City'."""
     for line in front:
         m = re.match(r"^\*\*(.+?)\*\*\s*,?\s*(.*)$", line.strip())
         if not m:
@@ -256,7 +256,7 @@ def author_line(front: list[str]) -> str:
         a = re.search(r"\(([A-Z][A-Za-z&]+)\)\s*(.*)$", aff)
         if a:
             aff = (a.group(1) + " " + a.group(2)).strip()
-        return f"{name} — {aff}" if aff else name
+        return f"{name}, {aff}" if aff else name
     return ""
 
 
@@ -614,7 +614,8 @@ def parse_inline(text: str, fmt: Fmt, citer: Citer | None) -> list[tuple[str, Fm
             out.append((m.group("codetext").strip(), fmt.but(code=True)))
         elif m.group("math") is not None:
             for sg in tex_to_segments(m.group("math")):
-                out.append((sg.text, fmt.but(italic=fmt.italic or sg.italic, vert=sg.vert)))
+                # non-breaking spaces keep an inline formula on one line
+                out.append((sg.text.replace(" ", "\u00a0"), fmt.but(italic=fmt.italic or sg.italic, vert=sg.vert)))
         elif m.group("ltext") is not None:
             out.extend(parse_inline(m.group("ltext"), fmt.but(link=resolve_link(m.group("lurl"))), citer))
         elif m.group("bold") is not None:
@@ -1079,7 +1080,16 @@ class Builder:
             elif b.kind == "h4":
                 self.para(b.text, Fmt(bold=True), space_after=3)
             elif b.kind == "para":
-                self.para(b.text)
+                txt = b.text.strip()
+                if txt.startswith("$$") and txt.endswith("$$") and len(txt) > 4:
+                    # display equation: centred on its own line; "\tag{n}" becomes a right-hand number
+                    body, tag = txt[2:-2].strip(), ""
+                    mt = re.search(r"\\tag\{([^}]*)\}", body)
+                    if mt:
+                        body, tag = (body[:mt.start()] + body[mt.end():]).strip(), f"\u2003\u2003({mt.group(1)})"
+                    self.para(f"${body}${tag}", align=WD_ALIGN_PARAGRAPH.CENTER, space_after=6)
+                else:
+                    self.para(b.text, align=WD_ALIGN_PARAGRAPH.JUSTIFY)
             elif b.kind == "quote":
                 self.para(b.text, Fmt(italic=True), indent=0.4)
             elif b.kind == "list":
@@ -1175,10 +1185,10 @@ def plan_document(paper: Paper) -> tuple[list, list[str], list[Block]]:
             plan.append(("blocks", sec.blocks))
 
     plan.append(("count_on", None))
-    section("1. Introduction", intro, "[TODO: Introduction — no '## 1. Introduction' section in paper.md]")
-    section("2. Related Work", related, "[TODO: Related Work — no matching section in paper.md]")
-    section("3. Methods", methods, "[TODO: Methods — no matching section in paper.md]")
-    section("4. Results", results, "[TODO: Results — no matching section in paper.md]")
+    section("1. Introduction", intro, "[TODO: Introduction: no '## 1. Introduction' section in paper.md]")
+    section("2. Related Work", related, "[TODO: Related Work: no matching section in paper.md]")
+    section("3. Methods", methods, "[TODO: Methods: no matching section in paper.md]")
+    section("4. Results", results, "[TODO: Results: no matching section in paper.md]")
 
     plan.append(("h2", "5. Discussion and Limitations"))
     if discussion is not None:
@@ -1196,7 +1206,7 @@ def plan_document(paper: Paper) -> tuple[list, list[str], list[Block]]:
             disc_blocks = rest
         plan.append(("blocks", disc_blocks))
     else:
-        plan.append(("todo", "[TODO: Discussion — no '## Discussion' section in paper.md]"))
+        plan.append(("todo", "[TODO: Discussion: no '## Discussion' section in paper.md]"))
         notes.append("no md section for Discussion")
         lim_inner = []
     lim_blocks = limitations.blocks if limitations is not None else lim_inner
@@ -1205,18 +1215,18 @@ def plan_document(paper: Paper) -> tuple[list, list[str], list[Block]]:
     if lim_part:
         plan.append(("blocks", lim_part))
     else:
-        plan.append(("todo", "[TODO: Limitations — no limitations section in paper.md]"))
+        plan.append(("todo", "[TODO: Limitations: no limitations section in paper.md]"))
         notes.append("no md content for Limitations")
     plan.append(("h3", "Future Work"))
     if fut_part:
         plan.append(("blocks", fut_part))
     else:
-        plan.append(("todo", "[TODO: Future work — paper.md has no future-work text yet "
+        plan.append(("todo", "[TODO: Future work: paper.md has no future-work text yet "
                              "(add a 'Future work' subsection or bold lead-in paragraph under §6)]"))
         notes.append("no future-work text in md (TODO placeholder emitted)")
 
     section("6. Conclusion", conclusion,
-            "[TODO: Conclusion — add a '## 7. Conclusion' section to paper.md]")
+            "[TODO: Conclusion: add a '## 7. Conclusion' section to paper.md]")
     plan.append(("count_off", None))
 
     plan.append(("h2", "Code and Data"))
@@ -1233,7 +1243,7 @@ def plan_document(paper: Paper) -> tuple[list, list[str], list[Block]]:
     if lim_part:
         plan.append(("blocks_h3", [Block("h4", "Limitations")] + lim_part))
     if not ethics:
-        plan.append(("todo", "[TODO: dual-use and ethical considerations — no matching appendix in paper.md]"))
+        plan.append(("todo", "[TODO: dual-use and ethical considerations: no matching appendix in paper.md]"))
         notes.append("no dual-use/ethics appendix in md")
     for a in appendices:
         if a in ethics:
@@ -1317,7 +1327,7 @@ def build(md_path: Path, template: Path, out: Path, cite_map_path: Path | None =
 
     cp = b.doc.core_properties
     cp.title = paper.title
-    author = author_line(paper.front).split(" — ")[0]
+    author = author_line(paper.front).split(", ")[0]
     cp.author = author
     cp.last_modified_by = author
     cp.comments = ""

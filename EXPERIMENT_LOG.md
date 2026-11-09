@@ -95,3 +95,9 @@ This is a lab notebook kept in time order (IST). It records what was run, what c
   - Results, Discussion and Conclusion written from `results/results.json`.
   - The main body was cut to fit 8 pages: tables of strategies, modules and the hypothesis scorecard moved to the appendices.
   - The curves figure lost its spare legend row. The final analysis was re-run to regenerate the figures; numbers are unchanged.
+- **Study 2 pre-registered** (`STUDY2_PREREG.md`, committed before any run). It is a confirmatory follow-up on fresh seeds 6–17 with 3 hypotheses:
+  - C1: quorum reduces leader capture;
+  - C2: leaderless debate on a full graph beats the hierarchy;
+  - C3: quorum protects debate on a ring.
+
+  60 LLM runs, about $1.30; the budget guard stops at $9.85.

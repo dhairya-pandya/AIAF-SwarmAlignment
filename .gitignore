@@ -17,3 +17,4 @@ results/logs/stageA_precal.log
 logs/_replay/
 site/.vercel/
 .DS_Store
+deck/build/

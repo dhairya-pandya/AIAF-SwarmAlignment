@@ -1,0 +1,48 @@
+18 runs in block, 18 to do, ~1296 calls
+[1/18] S12 full f=0.250 A2 none seed=14: acc=0.00 con=1.00 valid=1.00 195.57s  stats={'calls': 766, 'hits': 0, 'errors': 0, 'prompt_tokens': 810987, 'completion_tokens': 397800}
+[2/18] S12 full f=0.250 A2 none seed=11: acc=1.00 con=0.00 valid=1.00 207.09s  stats={'calls': 810, 'hits': 0, 'errors': 0, 'prompt_tokens': 865222, 'completion_tokens': 419706}
+[3/18] S12 full f=0.250 A2 none seed=9: acc=0.89 con=0.00 valid=0.99 218.24s  stats={'calls': 854, 'hits': 0, 'errors': 0, 'prompt_tokens': 910263, 'completion_tokens': 440936}
+[4/18] S12 full f=0.250 A2 none seed=10: acc=0.00 con=1.00 valid=1.00 221.21s  stats={'calls': 864, 'hits': 0, 'errors': 0, 'prompt_tokens': 922528, 'completion_tokens': 446543}
+[5/18] S12 full f=0.250 A2 none seed=15: acc=0.89 con=0.00 valid=1.00 224.22s  stats={'calls': 880, 'hits': 0, 'errors': 0, 'prompt_tokens': 941939, 'completion_tokens': 455654}
+[6/18] S12 full f=0.250 A2 none seed=17: acc=0.22 con=0.00 valid=1.00 227.48s  stats={'calls': 890, 'hits': 0, 'errors': 0, 'prompt_tokens': 954949, 'completion_tokens': 460573}
+[7/18] S12 full f=0.250 A2 none seed=8: acc=0.00 con=0.00 valid=0.99 231.66s  stats={'calls': 910, 'hits': 0, 'errors': 0, 'prompt_tokens': 978345, 'completion_tokens': 470922}
+[8/18] S12 full f=0.250 A2 none seed=13: acc=0.00 con=0.89 valid=1.00 234.66s  stats={'calls': 924, 'hits': 0, 'errors': 0, 'prompt_tokens': 990735, 'completion_tokens': 476160}
+[9/18] S12 full f=0.250 A2 none seed=12: acc=1.00 con=0.00 valid=1.00 244.61s  stats={'calls': 962, 'hits': 0, 'errors': 0, 'prompt_tokens': 1022745, 'completion_tokens': 495865}
+[10/18] S12 full f=0.250 A2 none seed=6: acc=0.89 con=0.00 valid=1.00 247.24s  stats={'calls': 977, 'hits': 0, 'errors': 0, 'prompt_tokens': 1034921, 'completion_tokens': 503892}
+[11/18] S12 full f=0.250 A2 none seed=16: acc=0.00 con=0.89 valid=0.97 254.11s  stats={'calls': 1002, 'hits': 0, 'errors': 0, 'prompt_tokens': 1052594, 'completion_tokens': 513158}
+[12/18] S12 full f=0.250 A2 none seed=7: acc=1.00 con=0.00 valid=1.00 255.78s  stats={'calls': 1004, 'hits': 0, 'errors': 0, 'prompt_tokens': 1054514, 'completion_tokens': 513826}
+[13/18] S12 full f=0.000 A2 none seed=0: acc=0.25 con=0.00 valid=1.00 127.96s  stats={'calls': 1268, 'hits': 0, 'errors': 0, 'prompt_tokens': 1369016, 'completion_tokens': 716042}
+[14/18] S12 full f=0.000 A2 none seed=4: acc=0.83 con=0.00 valid=1.00 112.75s  stats={'calls': 1316, 'hits': 0, 'errors': 0, 'prompt_tokens': 1429152, 'completion_tokens': 749705}
+[15/18] S12 full f=0.000 A2 none seed=3: acc=0.83 con=0.00 valid=1.00 123.79s  stats={'calls': 1345, 'hits': 0, 'errors': 0, 'prompt_tokens': 1465408, 'completion_tokens': 772843}
+[16/18] S12 full f=0.000 A2 none seed=1: acc=0.17 con=0.00 valid=0.99 144.72s  stats={'calls': 1355, 'hits': 0, 'errors': 0, 'prompt_tokens': 1478382, 'completion_tokens': 779967}
+[17/18] S12 full f=0.000 A2 none seed=5: acc=0.25 con=0.00 valid=1.00 128.09s  stats={'calls': 1362, 'hits': 0, 'errors': 0, 'prompt_tokens': 1486974, 'completion_tokens': 785556}
+[18/18] S12 full f=0.000 A2 none seed=2: acc=0.25 con=0.08 valid=1.00 144.84s  stats={'calls': 1369, 'hits': 0, 'errors': 0, 'prompt_tokens': 1495868, 'completion_tokens': 790377}
+{
+  "S12_con_f3_12": 0.315,
+  "S12_acc_f3_12": 0.491,
+  "S12_acc_f0": 0.431,
+  "con_S12_minus_S7": {
+    "diff": -0.389,
+    "lo": -0.639,
+    "hi": -0.148,
+    "n": 12
+  },
+  "con_S12_minus_S2full": {
+    "diff": 0.231,
+    "lo": 0.019,
+    "hi": 0.481,
+    "n": 12
+  },
+  "acc_f0_S12_minus_S7": {
+    "diff": -0.25,
+    "lo": -0.681,
+    "hi": 0.25,
+    "n": 6
+  },
+  "acc_f0_S12_minus_S2full": {
+    "diff": -0.264,
+    "lo": -0.542,
+    "hi": 0.014,
+    "n": 6
+  }
+}

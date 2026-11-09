@@ -101,3 +101,13 @@ This is a lab notebook kept in time order (IST). It records what was run, what c
   - C3: quorum protects debate on a ring.
 
   60 LLM runs, about $1.30; the budget guard stops at $9.85.
+- **Study 2 results** (pre-registered, fresh seeds 6–17; `results/study2.json`). All three hypotheses supported after Holm (3 tests):
+  - **C1:** quorum on the S7 hierarchy, con −0.33 [−0.60, −0.03], Holm p = 0.030.
+  - **C2:** leaderless S2 debate (full graph) vs the S7 hierarchy, con −0.62 [−0.81, −0.41], p < 0.001. Accuracy under attack 0.85 vs 0.12.
+  - **C3:** quorum on S2 on the ring, con −0.10 [−0.21, +0.01], Holm p = 0.047. Marginal: the two-sided CI includes 0.
+  - Spend after Study 2: $8.99.
+- **S12 elephant matriarch** (exploratory, D24; `results/s12_llm.json`). Leaders are elected by corroborated first-hand knowledge.
+  - LLM con at f=3/12 is 0.31, vs S7 on the same seeds: −0.39 [−0.64, −0.15]. Vs leaderless S2 full: +0.23 [+0.02, +0.48].
+  - Acc at f=0 is 0.43 (6 seeds), which is lower than S7 and S2; the CIs are wide.
+  - In the ABM, attackers never became S12 leaders, while they held more than half of the S7 leader seats under A5.
+  - Final spend: $9.25. No further runs.

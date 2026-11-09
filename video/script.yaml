@@ -65,10 +65,8 @@ scenes:
       - "Swarm theory predicts: topology controls spread; committed minorities tip groups"
       - "Do mechanism components, not animal metaphors, decide robustness?"
     narration: >
-      Many multi-agent designs borrow from swarm intelligence: ants, bees, birds and wolves. But natural
-      collectives also evolved defences against bad information, mostly negative feedback: pheromone evaporation,
-      stop signals, quorum thresholds. We ask which of these ideas protect LLM swarms, and whether robustness depends
-      on mechanism components rather than animal metaphors.
+      Many multi-agent designs borrow from ants, bees, birds and wolves. Nature also evolved defences against bad
+      information: pheromone evaporation, stop signals, quorum thresholds. We ask which of these protect LLM swarms.
 
   - id: method
     type: image
@@ -108,7 +106,7 @@ scenes:
       - "Lime and blue tiles are honest agents; red-cored tiles are compromised"
       - "Dark red = an honest agent that has been misled"
     narration: >
-      Here is how four of these swarms coordinate, and where a compromised agent gets its foothold.
+      Here is how three of these swarms coordinate, and where a compromised agent gets its foothold.
   - id: how_ants
     type: clip
     path: video/anim/ants.mp4
@@ -130,14 +128,6 @@ scenes:
     narration: >
       In the wolf pack, the three most confident agents lead and everyone follows. An attacker that
       simply claims maximum confidence takes the lead.
-  - id: how_debate
-    type: clip
-    path: video/anim/debate.mp4
-    heading: "Debate: average your neighbours"
-    narration: >
-      In free debate each agent averages its neighbours. Attackers who never move drag the average toward them.
-  # (also: video/anim/pso.mp4 particle swarm, video/anim/bats.mp4 vampire-bat trust, exploratory)
-
   - id: defences
     type: bullets
     kicker: "Defences"
@@ -211,6 +201,23 @@ scenes:
   #   path: video/assets/replay_viewer.mp4
   #   heading: "Replay viewer"
   #   narration: "..."
+
+  - id: results_leaders
+    type: bullets
+    kicker: "Confirmed · pre-registered follow-up on fresh seeds"
+    heading: "Leaderless evidence-sharing is the safest design"
+    bullets:
+      - "Leaderless debate, everyone sees first-hand evidence: 0.08 contaminated, 85% accurate"
+      - "Wolf-pack hierarchy, leaders by confidence: 0.70 contaminated, 12% accurate"
+      - "Honeybee quorum cuts leader capture by a third"
+      - "Elephant matriarch, leaders by confirmed knowledge: 0.31 (exploratory)"
+      - "Leaders help only when authority is earned by verified knowledge"
+    narration: >
+      To make these findings conclusive we pre-registered a follow-up on twelve fresh seeds. All three predictions held.
+      Leaderless debate, where every agent sees the first-hand evidence, was contaminated just eight percent of the time,
+      against seventy percent for the wolf-pack hierarchy. A honeybee quorum cut leader capture by a third. And when leaders
+      are chosen like an elephant matriarch, by knowledge that others confirm, capture fell to thirty-one percent.
+      Leadership helps only when authority is earned by verified knowledge.
 
   - id: reproducibility
     type: bullets

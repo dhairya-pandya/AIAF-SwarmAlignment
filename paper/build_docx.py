@@ -841,12 +841,16 @@ def _visible_len(md: str) -> int:
 
 def column_widths(rows: list[list[str]]) -> list[int]:
     ncol = max(len(r) for r in rows)
+    # group-label rows (text only in the first cell) should not widen the first column
+    body = [r for r in rows[1:] if any(c.strip() for c in r[1:])] or rows   # data rows set the widths
     lens = []
     for c in range(ncol):
-        vals = [_visible_len(r[c]) if c < len(r) else 0 for r in rows]
-        lens.append(max(4, min(max(vals), 80)) ** 0.75)
+        vals = [_visible_len(r[c]) if c < len(r) else 0 for r in body]
+        lens.append(max(4, min(max(vals), 80)) ** 0.9)
     total = sum(lens)
-    widths = [max(900, int(TEXT_WIDTH_DXA * x / total)) for x in lens]
+    widths = [max(820, int(TEXT_WIDTH_DXA * x / total)) for x in lens]
+    if ncol >= 6:   # wide tables: keep the label column from crowding out the numbers
+        widths[0] = min(widths[0], int(0.24 * TEXT_WIDTH_DXA))
     scale = TEXT_WIDTH_DXA / sum(widths)
     widths = [int(w * scale) for w in widths]
     widths[-1] += TEXT_WIDTH_DXA - sum(widths)

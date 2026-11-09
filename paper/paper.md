@@ -44,43 +44,53 @@ Table 4 (Appendix B) defines every term; Appendix C gives each strategy's equati
 
 **Metrics and statistics.** For honest agents $\mathcal H$ with final choices $c_i$, accuracy is $\mathrm{Acc}=\frac{1}{|\mathcal H|}\sum_{i\in\mathcal H}\mathbb 1[c_i=o^\star]$ and contamination is $\mathrm{Con}=\frac{1}{|\mathcal H|}\sum_{i\in\mathcal H}\mathbb 1[c_i=t]$; Con at $f=0$ is the chance floor. The tipping point $f^\star$ is where a logistic fit of Con against $f$ crosses 0.5. A module's usefulness cost is its change in Acc at $f=0$, and its value is contamination removed per unit of accuracy lost. Seeds share task, graph and attackers across arms, so contrasts are paired. We report 95% bootstrap CIs and Holm-correct H1–H10, separately for ABM and LLM evidence (D12).
 
-**Protocol.** Pilot and calibration; Stage A, the ABM screen (12 strategies × 7 module settings × 5 topologies × 8 values of $f$ × $N\in\{12,50,200\}$ × 30 seeds); Stage B, LLM blocks at $f\in\{0,1/12,3/12\}$ × 6 seeds (core, defences on S4 and S7 chosen by a pre-stated rule, attacks, red-team replay, Tier-2 with 3 seeds).
+**Protocol.** Pilot and calibration; Stage A, the ABM screen (12 strategies × 7 module settings × 5 topologies × 8 values of $f$ × $N\in\{12,50,200\}$ × 30 seeds); Stage B, LLM blocks at $f\in\{0,1/12,3/12\}$ × 6 seeds (core, defences on S4 and S7 chosen by a pre-stated rule, attacks, red-team replay, Tier-2 with 3 seeds); and a confirmation set of 12 fresh seeds for three pre-registered contrasts (C1–C3), with exploratory S12 on the same seeds.
 
 ## 4. Results
 
-Study 1 made 405 LLM runs (28,008 calls, 99.9% valid, no refusals) and 327,600 ABM runs; Study 2 and S12 added 78 LLM runs. All numbers come from `results/`; brackets are 95% bootstrap CIs over seeds.
+We made 483 LLM swarm runs (99.9% valid replies, no refusals) and 327,600 ABM runs. Every comparison below pools all available seeds. Three contrasts were additionally tested on 12 fresh seeds under a second pre-registration (`STUDY2_PREREG.md`, committed before those runs, Holm over three tests); we mark them *confirmatory*. Brackets are 95% bootstrap CIs over seeds.
 
-### 4.1 Which swarms resist a compromised minority?
+### 4.1 Leaderless or led: which designs resist a compromised minority?
 
-Table: LLM swarms on the full graph, $N=12$, attack A2. Acc$_0$ is accuracy with no attackers. Con is contamination with 1 or 3 compromised agents out of 12. The chance floor of Con is about 0.18, the rate at which honest agents pick the target unaided (S0b). $f^\star$ is the fitted tipping point; An entry of >0.25 means no transition inside the tested range.
-| Strategy | Acc$_0$ | Con, $f=1/12$ | Con, $f=3/12$ | $f^\star$ |
-|---|---|---|---|---|
-| S0b solo | 0.38 [0.31, 0.44] | 0.18 [0.09, 0.26] | 0.19 [0.09, 0.26] | >0.25 |
-| S1 majority | 0.39 [0.33, 0.44] | 0.18 [0.09, 0.26] | 0.19 [0.09, 0.26] | >0.25 |
-| S2 debate | **0.69** [0.39, 0.97] | 0.09 [0.00, 0.27] | **0.00** [0.00, 0.00] | >0.25 |
-| S3 PSO | 0.44 [0.26, 0.63] | 0.42 [0.24, 0.59] | 0.33 [0.15, 0.56] | >0.25 |
-| S4 ant stigmergy | 0.43 [0.33, 0.53] | 0.21 [0.15, 0.29] | 0.17 [0.09, 0.26] | >0.25 |
-| S5 bee colony (3 seeds) | 0.39 [0.33, 0.50] | 0.21 [0.00, 0.36] | 0.22 [0.11, 0.33] | >0.25 |
-| S6 firefly (3 seeds) | 0.44 [0.00, 1.00] | 0.36 [0.00, 0.91] | 0.00 [0.00, 0.00] | >0.25 |
-| S7 grey-wolf hierarchy | 0.68 [0.35, 1.00] | 0.24 [0.02, 0.56] | **0.61** [0.33, 0.87] | **0.21** [0.17, 0.39] |
-| S8 boids (3 seeds) | 0.42 [0.25, 0.58] | 0.00 [0.00, 0.00] | 0.00 [0.00, 0.00] | >0.25 |
-| S9 honeybee + quorum | 0.46 [0.39, 0.53] | 0.20 [0.08, 0.32] | 0.24 [0.11, 0.37] | >0.25 |
+Table: All LLM swarm designs, $N=12$, attack A2, full graph unless noted. Seeds: number of seeds at $f=3/12$ (Acc$_0$ and $f=1/12$ use seeds 0–5). Acc$_0$: accuracy with no attackers. Con: contamination with 1 or 3 of 12 agents compromised; the chance floor is about 0.18 (S0b). $f^\star$: fitted tipping point (>0.25: no transition in range). Confirmed: contrast tested under the second pre-registration on seeds 6–17 (Section 4.1 gives effects); † exploratory.
+| Design | Seeds | Acc$_0$ | Con 1/12 | Con 3/12 | 95% CI | $f^\star$ | Confirmed |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| **Leaderless** |  |  |  |  |  |  |  |
+| S2 debate, full graph | 18 | **0.69** | 0.09 | **0.06** | [0.00, 0.15] | >0.25 | C2, p<.001 |
+| S2 debate, ring | 18 | 0.54 | 0.15 | 0.38 | [0.28, 0.47] | >0.25 |  |
+| S2 ring + M3 quorum | 12 | n/a | n/a | 0.27 | [0.15, 0.39] | n/a | C3, p=.047 |
+| S4 ant stigmergy | 6 | 0.43 | 0.21 | 0.17 | [0.09, 0.26] | >0.25 |  |
+| S5 bee colony | 3 | 0.39 | 0.21 | 0.22 | [0.11, 0.33] | >0.25 |  |
+| S8 boids | 3 | 0.42 | 0.00 | 0.00 | [0.00, 0.00] | >0.25 |  |
+| S9 honeybee + quorum | 6 | 0.46 | 0.20 | 0.24 | [0.11, 0.37] | >0.25 |  |
+| S1 majority vote | 6 | 0.39 | 0.18 | 0.19 | [0.09, 0.26] | >0.25 |  |
+| **Follow-the-best** |  |  |  |  |  |  |  |
+| S3 particle swarm | 6 | 0.44 | 0.42 | 0.33 | [0.15, 0.56] | >0.25 |  |
+| S6 firefly | 3 | 0.44 | 0.36 | 0.00 | [0.00, 0.00] | >0.25 |  |
+| **Led** |  |  |  |  |  |  |  |
+| S7 wolf, confidence leaders | 18 | 0.68 | 0.24 | **0.67** | [0.50, 0.83] | **0.21** |  |
+| S7 + M3 quorum | 18 | 0.67 | n/a | 0.36 | [0.20, 0.54] | n/a | C1, p=.030 |
+| S12 matriarch, knowledge leaders † | 12 | 0.43 | n/a | 0.31 | [0.07, 0.56] | n/a | exploratory |
 
-**Hierarchy is the one design that tips.** The grey-wolf strategy (S7) is the only one that crosses half contamination in range: $f^\star=0.21$ [0.17, 0.39], inside the 0.10–0.25 band reported for committed minorities [C7, C8]. Attackers who report high confidence become its leaders.
+**Leaderless evidence-sharing is the safest design.** Debate on the full graph, where every agent sees every peer's first-hand claims, is both the most useful design (Acc$_0$ = 0.69) and nearly uncontaminated (0.06 over 18 seeds, accuracy under attack 0.79). It beats the confidence-elected hierarchy by 0.62 on fresh seeds (C2, confirmatory). Leaderless shared-medium designs (S4, S5, S9) also stay near the chance floor but cost usefulness (Acc$_0$ 0.39–0.46).
 
-**Debate on a dense graph resists.** Debate (S2) is the most useful strategy (Acc$_0$ = 0.69) and is uncontaminated at $f=3/12$. Shared-medium strategies (S4, S5, S9) stay near the chance floor but cost usefulness (Acc$_0$ 0.43–0.46). Debate is not worse than compute-matched majority voting under attack (H0 supported; +0.09 and +0.26, with CIs that include 0).
+**Leaders elected by confidence are captured.** The grey-wolf hierarchy (S7) is the only design that tips in range, at $f^\star=0.21$ [0.17, 0.39], inside the 0.10–0.25 band reported for committed minorities [C7, C8]: attackers who report high confidence become its leaders, and accuracy under attack falls to 0.14.
+
+**Leadership is safe only when it is earned.** Requiring a quorum of first-hand evidence before switching halves leader capture (C1, confirmatory). Electing leaders by corroborated knowledge, after elephant matriarchs [C16] (S12: the three agents whose first-hand claims were most often independently confirmed), gives a similar gain; in the twin, attackers never became S12 leaders but held most S7 seats under A5. Neither matches leaderless debate (S12 vs S2 full: +0.23 [+0.02, +0.48]), and S12 is less useful without attackers.
+
+**Sparse graphs hurt debate, and quorum helps only a little** (C3 passes its one-sided test; the two-sided interval touches zero).
 
 ### 4.2 Swarm theory transfers to the twin, not to LLM swarms
 
-**The twin reproduces classic swarm theory** (Figure 2). Dense graphs spread contamination more and faster than the ring (H1 supported; for S2, +0.13 [0.10, 0.17], with $T_{50}$ 0.93 rounds earlier). Opinion-averaging strategies tip early ($f^\star$ = 0.05 for S2, 0.03 for S6, 0.04 for S7, 0.06 for S8), while shared-medium ones tip late (0.26 for S9, 0.36 for S4). Transitions are gradual, with a median 10–90% width of 0.69 (H2 not supported).
+![Contamination against attacker fraction. Lines and bands: calibrated ABM twin at N = 12, 50, 200 (mean and 95% bootstrap CI over 30 seeds; full topology, attack A2). Diamonds with bars: LLM swarms (gpt-oss-120b, N = 12, 6 seeds; 3 for S5, S6, S8). † S11 and S12 are exploratory.](../figures/fig3_con_vs_f.png){width=5.2in}
 
-**LLM swarms break these predictions.** For LLM debate, the full graph is *less* contaminated than the ring: −0.22 [−0.33, −0.12] (H1 not supported). The calibrated twin over-predicts contamination by +0.35 [0.24, 0.48] per cell and does not rank the 24 matched cells (ρ = −0.02; H6 not supported; Figure 7, Appendix E).
+**The twin reproduces classic swarm theory** (Figure 2). Dense graphs spread contamination more and faster than the ring (H1 supported; for S2, +0.13 [0.10, 0.17], with $T_{50}$ 0.93 rounds earlier). Opinion-averaging strategies tip early ($f^\star$ = 0.05 for S2, 0.03 for S6, 0.04 for S7, 0.06 for S8), shared-medium ones late (0.26 for S9, 0.36 for S4), and transitions are gradual (median width 0.69; H2 not supported).
 
-![Contamination against attacker fraction. Lines and bands: calibrated ABM twin at N = 12, 50, 200 (mean and 95% bootstrap CI over 30 seeds; full topology, attack A2). Diamonds with bars: LLM swarms (gpt-oss-120b, N = 12, 6 seeds; 3 for S5, S6, S8). † S11 is exploratory (Section 4.6).](../figures/fig3_con_vs_f.png){width=5.2in}
+**LLM swarms break these predictions.** For LLM debate the full graph is *less* contaminated than the ring (Table 1), the reverse of H1. The calibrated twin over-predicts LLM contamination by +0.35 [0.24, 0.48] per cell and does not rank the 24 matched cells (ρ = −0.02; H6 not supported; Figure 7, Appendix E).
 
-**Why: evidence, not dilution** (exploratory; Appendix F). On the full graph a debating agent sees about 66 claims per round, against 12 on the ring, with the same attacker share (about 0.10). Yet target adoption falls from 0.20 on the ring to 0.04 on the full graph. With near-complete honest evidence, a reasoning agent recomputes the answer instead of averaging opinions.
+**Why: evidence, not dilution** (exploratory; Appendix F). On the full graph a debating agent sees about 66 claims per round, against 12 on the ring, with the same attacker share (about 0.10), yet target adoption falls from 0.20 to 0.04. With near-complete honest evidence, a reasoning agent recomputes the answer instead of averaging opinions.
 
-### 4.3 Quorum is the best defence; evaporation backfires
+### 4.3 Defences: quorum works, evaporation backfires
 
 Table: Defence modules on LLM swarms (S4 and S7 pooled, $f=3/12$, 6 seeds). ΔCon and ΔAcc$_0$ are module minus no-module, paired by seed; negative ΔCon is protective.
 | Module | ΔCon (pooled) | ΔCon on S7 (wolf) | ΔAcc$_0$ (usefulness) |
@@ -91,36 +101,11 @@ Table: Defence modules on LLM swarms (S4 and S7 pooled, $f=3/12$, 6 seeds). ΔCo
 | M4 uninformed dilution | +0.03 [−0.17, +0.21] | +0.02 [−0.35, +0.35] | −0.14 [−0.38, +0.08] |
 | M5 three model families | −0.02 [−0.15, +0.10] | −0.11 [−0.33, +0.11] | −0.11 [−0.32, +0.05] |
 
-**Quorum is the only module that reduces LLM contamination, and it costs no accuracy.** It ranks first by value in both the twin (P(rank 1) = 0.95) and the LLM swarms (0.83), and it roughly halves leader capture in S7. It remains inconclusive after Holm correction (H3).
+**Quorum is the only module that reduces LLM contamination, at no measurable accuracy cost.** It ranks first by value in both the twin (P(rank 1) = 0.95) and the LLM swarms (0.83), and its effect on leader capture is confirmed on fresh seeds (C1). **Evaporation backfires:** it raises S7's contamination by +0.31, because honest agents revise as evidence arrives while confident attackers keep leading. In the twin, stop signals cut contamination by 0.22 but raise deadlock by 0.36 (H4 not supported). Model diversity and dilution had no measurable LLM effect (H5 inconclusive).
 
-**Evaporation backfires.** It raises S7's contamination by +0.31: honest agents revise as evidence arrives, while confident attackers keep leading. In the twin, stop signals cut contamination by 0.22 but raise deadlock by 0.36 (H4 not supported). Model diversity and dilution had no measurable LLM effect (H5 inconclusive).
+### 4.4 Components, red team, and the hypothesis scorecard
 
-### 4.4 Components, red team, and exploratory reputation
-
-In the twin, vulnerability correlates slightly more with mechanism components than with metaphor families (Mantel $r=0.38$ vs $0.33$, $p_{\text{Holm}}=0.057$; H10 inconclusive); S4 and S9 cluster together (Figure 5). Red-team worst cases found on the twin (0.96 contamination of S7 from one hub) transferred poorly to LLMs (0.00–0.42), and the GA's genome was less damaging than random search's (H7 not supported). Exploratory S11 (vampire-bat reciprocity [C14, C15]) is reported in Appendix F.
-
-### 4.5 When do leaders help? A pre-registered confirmation
-
-Because several Study 1 effects were large but underpowered, we pre-registered a follow-up (`STUDY2_PREREG.md`, committed before any run): three hypotheses, 12 fresh seeds per arm, $f=3/12$, Holm over three tests. On the same seeds we ran exploratory S12, which copies S7's hierarchy but elects the agents whose first-hand claims were most often independently confirmed, after elephant matriarchs whose authority rests on knowledge [C16].
-
-Table: Study 2 (confirmatory, seeds 6–17) and exploratory S12 on the same seeds; $f=3/12$, 12 seeds per arm, attack A2. ΔCon is a paired difference with its 95% CI; "marginal" means supported by the pre-registered one-sided test while the two-sided CI touches zero.
-| Contrast | Con | ΔCon [95% CI] | Holm p | Verdict |
-|---|---|---|---|---|
-| C1: S7+M3 vs S7 | 0.37 vs 0.70 | −0.33 [−0.60, −0.03] | 0.030 | supported |
-| C2: S2 full vs S7 | 0.08 vs 0.70 | **−0.62** [−0.81, −0.41] | <.001 | supported |
-| C3: S2 ring+M3 vs S2 ring | 0.27 vs 0.37 | −0.10 [−0.21, +0.01] | 0.047 | marginal |
-| S12 vs S7 | 0.31 vs 0.70 | −0.39 [−0.64, −0.15] | n/a | exploratory |
-| S12 vs S2 full | 0.31 vs 0.08 | +0.23 [+0.02, +0.48] | n/a | exploratory |
-
-**Leaderless evidence-sharing is the safest design.** Debate on the full graph kept contamination at 0.08 and accuracy under attack at 0.85, while the confidence-elected hierarchy fell to 0.70 contamination and 0.12 accuracy (C2).
-
-**Leadership helps only when it is earned by verified knowledge.** Electing leaders by corroboration (S12) or adding a quorum (C1) roughly halves leader capture. Neither matches leaderless debate, and S12 was also less useful without attackers (Acc$_0$ 0.43 vs 0.69, 6 seeds). In the twin, attackers never became S12 leaders, while they held most S7 leader seats under A5.
-
-**On sparse graphs, quorum helps only a little** (C3 passes its one-sided test; the two-sided interval touches zero).
-
-### 4.6 Hypothesis scorecard
-
-Of the Study 1 hypotheses (Table 7, Appendix F), the twin supports H0 and H1 and the LLM swarms support H0; H1 and H6 fail in the *opposite* direction for LLMs, and H3 is confirmed by Study 2 (C1).
+In the twin, vulnerability correlates slightly more with mechanism components than with metaphor families (Mantel $r=0.38$ vs $0.33$, $p_{\text{Holm}}=0.057$; H10 inconclusive), and S4 and S9 cluster together (Figure 5). Red-team worst cases found on the twin (0.96 contamination of S7 from one hub) transferred poorly to LLMs (0.00–0.42), and the GA's genome was less damaging than random search's (H7 not supported). Table 7 (Appendix F) lists every pre-registered hypothesis, H0–H10 and C1–C3, with its verdict: C1–C3 are supported, H0 and H1 hold in the twin, and H1 and H6 fail in the *opposite* direction for LLMs.
 
 ## 5. Discussion
 
@@ -413,7 +398,7 @@ Compromised agents report the target with a fixed confidence. The deference $\ka
 
 ## Appendix F. Extended results
 
-Table: Pre-registered hypotheses. "Inconclusive" means the criterion was met in direction but did not survive Holm correction, or the data could not decide.
+Table: All pre-registered hypotheses: H0–H10 (DESIGN.md) and the confirmatory contrasts C1–C3 (STUDY2_PREREG.md, fresh seeds 6–17). "Inconclusive" means the criterion was met in direction but did not survive Holm correction, or the data could not decide.
 | ID | Prediction | ABM twin | LLM swarms |
 |---|---|---|---|
 | H0 | Debate no better than majority under attack | supported | supported (CIs include 0) |
@@ -427,6 +412,9 @@ Table: Pre-registered hypotheses. "Inconclusive" means the criterion was met in 
 | H8 | Hierarchy fastest and most fragile to A5 | not run (A5 was tested only on S4) | not run |
 | H9 | S4 and S9 most robust | inconclusive (ranks 1–2 by $f^\star$) | not supported |
 | H10 | Results group by component, not metaphor | inconclusive (p$_{\text{Holm}}$ = 0.057) | not testable |
+| C1 | Quorum reduces leader capture (S7) | n/a | **supported**: −0.33 [−0.60, −0.03], p$_{\text{Holm}}$ = 0.030 (fresh seeds) |
+| C2 | Leaderless debate (full graph) beats the S7 hierarchy | n/a | **supported**: −0.62 [−0.81, −0.41], p$_{\text{Holm}}$ < 0.001 (fresh seeds) |
+| C3 | Quorum protects debate on a ring | n/a | **supported, marginal**: −0.10 [−0.21, +0.01], p$_{\text{Holm}}$ = 0.047 (fresh seeds) |
 
 **Exposure analysis (exploratory).** For each honest LLM turn in S2 and S3 at $f>0$ (2,400 turns, 48 runs), we counted the claims visible in the prompt and the share written by attackers.
 

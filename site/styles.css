@@ -63,7 +63,7 @@ a:hover { text-decoration-color: var(--si-vermilion); }
 .topbar-inner { display: flex; align-items: center; gap: 20px; height: 52px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.02em;
   color: var(--fg); text-decoration: none; white-space: nowrap; }
-.brand-mark { width: 22px; height: 18px; display: block; }
+.brand-mark { width: 26px; height: 26px; display: block; }
 .topbar nav { display: flex; gap: 18px; overflow-x: auto; scrollbar-width: none; min-width: 0; }
 .topbar nav::-webkit-scrollbar { display: none; }
 .topbar nav a { color: var(--subtle); text-decoration: none; font-family: var(--mono); font-size: .72rem;

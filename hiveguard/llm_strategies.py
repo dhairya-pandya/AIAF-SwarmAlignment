@@ -1,9 +1,11 @@
-"""LLM forms of the 11 pre-registered strategies (plus exploratory S11): what each agent sees and how it is told to update (DESIGN §6.2).
+"""LLM forms of the 11 pre-registered strategies (plus exploratory S11 and S12): what each agent sees and how it is told to update (DESIGN §6.2).
 
 Each strategy builds a text view from round r-1 outputs held by the environment (`env`)."""
 from __future__ import annotations
 
 import numpy as np
+
+from .config import seed_int
 
 K_BOARD = 6
 FIRST = "This is the first round: answer from your private facts alone."
@@ -515,6 +517,83 @@ class S11(LStrategy):
             "trust, then give your updated answer.")
 
 
+class S12(S7):
+    """Elephant matriarch: leadership by corroborated knowledge (exploratory, DEVIATIONS D24).
+
+    The S7 leader-follower structure, but the 3 leaders of round r are elected from the parsed round r-1 outputs
+    by corroboration, not confidence. Agent j's score is the number of distinct first-hand (source "own") claims
+    j made in round r-1 whose (option, attribute, value) also appears among the first-hand claims of at least one
+    other agent in round r-1. Ties are broken by fewer contradicted claims (a first-hand claim of j for which
+    another agent's first-hand claim has the same option and attribute but a different value), then by a seeded
+    random order. Round 0 is the independent answer and needs no leaders; from round 1 on there are always round
+    r-1 claims, and if no claim is corroborated the seeded random order decides. Colluding attackers who make
+    identical first-hand claims can corroborate each other; that is part of the mechanism under test."""
+
+    def __init__(self, env):
+        super().__init__(env)
+        self._leaders: dict[int, list[int]] = {}
+        self.scores: dict[int, dict[int, tuple[int, int]]] = {}
+
+    def _keys(self, j: int, r: int) -> set[tuple[int, int, int]]:
+        """Distinct (option, attribute, value) of j's first-hand round r claims about known options/attributes."""
+        o, t = self.env.out(r, j), self.env.task
+        out = set()
+        for cl in (o.claims if o is not None else []):
+            oi = t.option_index(cl.option)
+            a = cl.attribute.strip().lower()
+            if cl.source == "own" and oi is not None and a in t.attributes:
+                out.add((oi, t.attributes.index(a), int(cl.value)))
+        return out
+
+    def corroboration(self, r: int) -> dict[int, tuple[int, int]]:
+        """(confirmed, contradicted) first-hand claims of every agent with an output in round r."""
+        e = self.env
+        keys = {j: self._keys(j, r) for j in range(e.N) if e.out(r, j) is not None}
+        res = {}
+        for j, kj in keys.items():
+            others = set().union(*(k for x, k in keys.items() if x != j))
+            pairs = {(o, a): set() for o, a, _ in others}
+            for o, a, v in others:
+                pairs[(o, a)].add(v)
+            conf = sum(1 for k in kj if k in others)
+            contra = sum(1 for o, a, v in kj if pairs.get((o, a), set()) - {v})
+            res[j] = (conf, contra)
+        return res
+
+    def leaders(self, r) -> list[int]:
+        if r not in self._leaders:
+            e = self.env
+            sc = self.corroboration(r - 1)
+            self.scores[r - 1] = sc
+            tie = np.random.default_rng(seed_int(e.cfg.seed, "s12", r)).permutation(e.N)
+            cand = [j for j in sc if e.sender_ok(j, r)]
+            self._leaders[r] = sorted(cand, key=lambda j: (-sc[j][0], sc[j][1], tie[j]))[:3]
+        return self._leaders[r]
+
+    def view(self, i, r):
+        if r == 0:
+            return ""
+        L = self.leaders(r)
+        sc = self.scores[r - 1]
+        js = [j for j in L if j != i]
+        return self.messages(i, r, js, "Messages from the matriarchs (the agents whose first-hand facts were most "
+                             "often independently confirmed last round):",
+                             extra=lambda j: f" (matriarch {L.index(j) + 1}, {sc[j][0]} confirmed facts)")
+
+    def instruction(self, i, r):
+        if r == 0:
+            return FIRST
+        R = self.env.R
+        a = 2.0 * (1 - r / max(R - 1, 1))
+        phase = ("Explore: keep weighing your own evidence." if a > 1 else
+                 "Converge: move toward the matriarchs' consensus.")
+        if i in self.leaders(r):
+            return ("You are a matriarch: your first-hand facts were among the most often independently confirmed "
+                    f"by other agents last round. Revise from your own evidence and the other matriarchs. {phase}")
+        return ("The matriarchs are the agents whose first-hand facts were most often independently confirmed "
+                f"last round. Move toward the matriarchs' consensus. {phase}")
+
+
 LLM_STRATEGIES = {"S0a": S0a, "S0b": S0b, "S1": S1, "S2": S2, "S3": S3, "S4": S4, "S5": S5,
                   "S6": S6, "S7": S7, "S8": S8, "S9": S9, "S10": S10,
-                  "S11": S11}
+                  "S11": S11, "S12": S12}

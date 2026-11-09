@@ -11,7 +11,7 @@ from hiveguard.analysis import (COMPONENTS, HYP, analyze, component_distance, ho
 QUICK = Path(__file__).parents[1] / "results" / "stageA_quick_precal.csv"
 VERDICTS = {"supported", "not supported", "inconclusive", "not run"}
 FSTAR = {"S0a": 9, "S0b": 9, "S1": 9, "S2": 0.05, "S3": 0.08, "S4": 0.3, "S5": 0.2, "S6": 0.06, "S7": 0.04,
-         "S8": 0.07, "S9": 0.28, "S10": 0.1, "S11": 0.5}
+         "S8": 0.07, "S9": 0.28, "S10": 0.1, "S11": 0.5, "S12": 0.45}
 MOD = {"none": (1.0, 0.0), "M2": (0.7, 0.05), "M3": (0.3, 0.01), "M4": (0.9, 0.0)}
 FAST = dict(boot=50, tip_boot=5, hyp_boot=300, perms=199, workers=1)
 
@@ -138,8 +138,9 @@ def test_synthetic_end_to_end(synth):
     assert H[("H6", "ABM vs LLM")]["verdict"] != "not run" and H[("H5", "ABM vs LLM")]["verdict"] != "not run"
     assert H[("H10", "ABM")]["statistic"]["strategies"]
     assert "S11" not in H[("H10", "ABM")]["statistic"]["strategies"]       # exploratory (D22)
+    assert "S12" not in H[("H10", "ABM")]["statistic"]["strategies"]       # exploratory (D24)
     lb = {b["strategy"]: b for b in res["leaderboard"]["ABM"]}
-    assert lb["S11"]["exploratory"] and not lb["S2"]["exploratory"]
+    assert lb["S11"]["exploratory"] and lb["S12"]["exploratory"] and not lb["S2"]["exploratory"]
     assert all(h["p_holm"] is not None for h in res["hypotheses"] if h["holm_reject"] is not None)
     m3 = res["modules"]["ABM"]["M3"]["overall"]
     assert m3["d_con"]["hi"] < 0 and "usefulness" in m3
@@ -152,12 +153,12 @@ def test_synthetic_end_to_end(synth):
 def test_exploratory_excluded_from_hypotheses(synth, tmp_path):
     d, res = synth
     df = pd.read_csv(d / "a.csv")
-    df[df.strategy != "S11"].to_csv(tmp_path / "a.csv", index=False)
+    df[~df.strategy.isin(["S11", "S12"])].to_csv(tmp_path / "a.csv", index=False)
     res2 = analyze(str(tmp_path / "a.csv"), str(d / "rt.json"), [str(d / "b.csv")], None, str(d / "p.json"),
                    str(tmp_path / "res.json"), str(tmp_path / "fig"), **FAST)
     key = lambda r: {(h["id"], h["source"]): (h["verdict"], h["p"], h["p_holm"]) for h in r["hypotheses"]}
     assert key(res) == key(res2)
-    assert "S11" not in {b["strategy"] for b in res2["leaderboard"]["ABM"]}
+    assert not {"S11", "S12"} & {b["strategy"] for b in res2["leaderboard"]["ABM"]}
 
 
 def test_missing_inputs(tmp_path):

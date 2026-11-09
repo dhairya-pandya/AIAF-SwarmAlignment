@@ -111,3 +111,30 @@ def test_s11_without_trust_updates_is_s2():
         b = ABMSim(RunConfig(strategy="S2", f=0.25, seed=s), p)
         b.rng.bit_generator.state = a.rng.bit_generator.state     # same random stream as the S11 run
         assert (a.run()["choices"] == b.run()["choices"]).all()
+
+
+def _leader_attacker_share(strategy):
+    hits = total = 0
+    for s in range(10):
+        sim = ABMSim(RunConfig(strategy=strategy, f=0.25, n_agents=12, attack="A5", seed=s))
+        sim.run()
+        for L in sim.strategy.leader_hist:
+            hits += int(sim.world.attacker[L].sum())
+            total += len(L)
+    return hits / total
+
+
+def test_s12_leaders_are_not_max_confidence_attackers():
+    """Exploratory S12: A5 attackers (confidence 1.0) capture S7's leadership but never S12's (no corroborated facts)."""
+    s12, s7 = _leader_attacker_share("S12"), _leader_attacker_share("S7")
+    assert s12 == 0.0
+    assert s7 > 0.5 and s12 < s7
+
+
+def test_s12_determinism_and_scores():
+    cfg = RunConfig(strategy="S12", f=0.25, attack="A5", seed=3)
+    a, b = ABMSim(cfg), ABMSim(cfg)
+    assert (a.run()["choices"] == b.run()["choices"]).all()
+    assert [L.tolist() for L in a.strategy.leader_hist] == [L.tolist() for L in b.strategy.leader_hist]
+    assert (a.strategy.score[a.world.attacker] == 0).all()
+    assert (a.strategy.score[a.world.honest] > 0).any()

@@ -27,10 +27,11 @@ COMP_COLS = ["direct", "medium", "memory", "hierarchy", "decay", "roles", "negfb
 COMPONENTS = {  # DESIGN §6.3
     "S1": "00000000", "S2": "10000000", "S3": "10100000", "S4": "01000010", "S5": "01100110",
     "S6": "10001000", "S7": "10010100", "S8": "10000010", "S9": "01000111", "S10": "01000110",
-    "S11": "10100010"}   # S11 is exploratory (D22): direct msgs, memory (trust), negative feedback (trust decay)
+    "S11": "10100010",   # S11 is exploratory (D22): direct msgs, memory (trust), negative feedback (trust decay)
+    "S12": "10110100"}   # S12 is exploratory (D24): S7's row plus memory (corroboration record)
 FAMILY = {"S4": "insects", "S5": "insects", "S9": "insects", "S10": "insects", "S7": "wolves",
           "S6": "fireflies", "S8": "birds", "S1": "abstract", "S2": "abstract", "S3": "abstract",
-          "S11": "mammals"}
+          "S11": "mammals", "S12": "mammals"}
 HYP = {
     "H0": "Free debate (S2) is no better than compute-matched majority (S1) when f>0",
     "H1": "Dense topologies (star, full) spread contamination more and faster than ring",

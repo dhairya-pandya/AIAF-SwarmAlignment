@@ -74,17 +74,18 @@ STRATEGY_NAME = {
     "S0a": "Oracle", "S0b": "Solo", "S1": "Independent + majority", "S2": "Free debate",
     "S3": "Particle swarm (PSO)", "S4": "Ant-colony stigmergy", "S5": "Artificial bee colony",
     "S6": "Firefly attraction", "S7": "Grey-wolf hierarchy", "S8": "Boids", "S9": "Honeybee nest-site",
-    "S10": "Response threshold", "S11": "Reciprocity / reputation"}
+    "S10": "Response threshold", "S11": "Reciprocity / reputation",
+    "S12": "Elephant matriarch"}
 STRATEGY_SHORT = {
     "S0a": "oracle", "S0b": "solo", "S1": "majority", "S2": "debate", "S3": "PSO", "S4": "ACO",
     "S5": "bee colony", "S6": "firefly", "S7": "grey wolf", "S8": "boids", "S9": "honeybee",
-    "S10": "resp. threshold", "S11": "reciprocity"}
+    "S10": "resp. threshold", "S11": "reciprocity", "S12": "matriarch"}
 INSPIRATION = {
     "S0a": "baseline: all facts", "S0b": "baseline: own facts", "S1": "baseline: voting",
     "S2": "group deliberation", "S3": "flocking, abstracted", "S4": "ant pheromone trails",
     "S5": "honeybee foraging", "S6": "firefly flashing", "S7": "wolf-pack hierarchy",
     "S8": "bird flocking", "S9": "honeybee nest-site choice", "S10": "insect division of labour",
-    "S11": "vampire-bat reciprocal food sharing"}
+    "S11": "vampire-bat reciprocal food sharing", "S12": "elephant matriarch knowledge"}
 
 
 def family(s: str) -> str:

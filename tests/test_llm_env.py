@@ -90,3 +90,38 @@ def test_s11_trust_from_claims(tmp_path):
     env.run()
     assert all(st.floor <= v for row in st.trust.values() for v in row.values())
     assert "trust" in env._messages(i, 1)[1]["content"]
+
+
+def test_s12_corroboration_leaders(tmp_path):
+    from hiveguard.schema import Claim, Output
+    env = LLMEnv(RunConfig(strategy="S12", backend="llm", f=0.25, attack="A5"), LLMClient(tmp_path / "c.sqlite"), None)
+    st, t = env.strategy, env.task
+    a0, a1 = t.attributes[0], t.attributes[1]
+
+    class T:
+        def __init__(self, claims, conf=0.5):
+            self.out = Output(choice="A", confidence=conf, claims=claims)
+    turns = [T([]) for _ in range(env.N)]
+    turns[0] = T([Claim(option="A", attribute=a0, value=7), Claim(option="B", attribute=a1, value=3)])
+    turns[1] = T([Claim(option="A", attribute=a0, value=7)])
+    turns[2] = T([Claim(option="B", attribute=a1, value=3), Claim(option="A", attribute=a0, value=2)])
+    turns[3] = T([Claim(option="A", attribute=a0, value=7, source="ag-11")], conf=1.0)   # relayed, not first-hand
+    env.turns.append(turns)
+    env.claim_ids.append([[f"{env.disp[j]}-r0-{k}" for k in range(len(tt.out.claims))] for j, tt in enumerate(turns)])
+    sc = st.corroboration(0)
+    assert sc[0] == (2, 1) and sc[1] == (1, 1) and sc[2] == (1, 1) and sc[3] == (0, 0)
+    L = st.leaders(1)
+    assert L[0] == 0 and set(L[1:]) == {1, 2} and st.leaders(1) == L
+    msg = env._messages(5, 1)[1]["content"]
+    assert "independently confirmed" in msg
+    for i in (0, 5):
+        ins = st.instruction(i, 1)
+        assert "independently confirmed" in ins and "confiden" not in ins.lower()
+
+
+def test_s12_mock_run_excludes_attackers(tmp_path):
+    env = LLMEnv(RunConfig(strategy="S12", backend="llm", f=0.25, attack="A5"), LLMClient(tmp_path / "c.sqlite"),
+                 tmp_path / "logs")
+    m = env.run()
+    assert m["calls"] == 72 and m["valid_rate"] == 1.0
+    assert all(len(L) == 3 for L in env.strategy._leaders.values())

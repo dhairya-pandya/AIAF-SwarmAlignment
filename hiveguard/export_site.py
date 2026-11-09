@@ -29,7 +29,7 @@ from .world import build_world
 
 OPTION_IDS = "ABCDEFGHIJ"
 BOARD = {"S4", "S5", "S9", "S10"}
-BROADCAST = {"S7"}
+BROADCAST = {"S7", "S12"}
 SOLO = {"S0a", "S0b", "S1"}
 
 STRATEGIES = {
@@ -47,6 +47,8 @@ STRATEGIES = {
     "S10": ("Division of labour", "Proposer-verifier roles taken by response thresholds", "insects"),
     "S11": ("Reciprocity / reputation", "Exploratory: neighbours weighted by trust earned from claims that match "
             "your own facts", "mammals"),
+    "S12": ("Elephant matriarch", "Exploratory: leader-follower like S7, but the 3 leaders are the agents whose "
+            "first-hand facts were most often independently confirmed last round", "mammals"),
 }
 MODULES = {
     "none": ("No defence", "Strategy as specified"),

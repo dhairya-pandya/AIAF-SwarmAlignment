@@ -211,7 +211,8 @@ FAMILY_ORDER = ["baseline", "abstract", "insects", "wolves", "fireflies", "birds
 INSP_SHORT = {"S0a": "upper bound", "S0b": "lower bound", "S1": "voting", "S2": "deliberation",
               "S3": "flocking, abstracted", "S4": "ant pheromone trails", "S5": "bee foraging",
               "S6": "firefly flashing", "S7": "wolf-pack ranks", "S8": "bird flocking", "S9": "bee nest-site choice",
-              "S10": "insect task roles", "S11": "vampire-bat sharing"}
+              "S10": "insect task roles", "S11": "vampire-bat sharing",
+              "S12": "elephant matriarch knowledge"}
 
 
 def strategy_rows() -> list[tuple[str, str]]:

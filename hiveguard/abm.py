@@ -1,4 +1,4 @@
-"""Agent-based-model twins of the 11 pre-registered strategies (plus exploratory S11), plus attacks and defence modules (DESIGN §6–8).
+"""Agent-based-model twins of the 11 pre-registered strategies (plus exploratory S11 and S12), plus attacks and defence modules (DESIGN §6–8).
 
 Conventions
 - Rounds r = 0..R-1. Round 0 is an independent answer from private evidence. In round r >= 1
@@ -233,11 +233,14 @@ class S7(Strategy):
     """Grey wolf hierarchy: alpha/beta/delta = top-3 reported confidence, broadcast to all."""
     topology = False
 
+    def select_leaders(self, sim: "ABMSim", rep: Reports) -> np.ndarray:
+        conf = np.where(sim.w_send > 0, rep.conf, -1.0) + sim.rng.uniform(0, 1e-9, sim.N)
+        return np.argsort(-conf)[:3]
+
     def step(self, sim, r, rep, V):
         p, N = sim.p, sim.N
         a = 2.0 * (1 - r / max(sim.R - 1, 1))
-        conf = np.where(sim.w_send > 0, rep.conf, -1.0) + sim.rng.uniform(0, 1e-9, N)
-        leaders = np.argsort(-conf)[:3]
+        leaders = self.select_leaders(sim, rep)
         L = rep.B[leaders].mean(0)
         noise = sim.rng.normal(0, p.gwo_noise, sim.B.shape)
         B = proj_simplex((1 - a / 2) * L[None, :] + (a / 2) * (sim.B + noise))
@@ -246,7 +249,35 @@ class S7(Strategy):
             k = sim.kappa[l]
             B[l] = (1 - k) * sim.E[l] + k * rep.B[others].mean(0)
         self.leaders = leaders
+        self.leader_hist = getattr(self, "leader_hist", []) + [leaders.copy()]
         return B, argmax_rand(B, sim.rng)
+
+
+class S12(S7):
+    """Elephant matriarch: leadership by corroborated knowledge (exploratory; McComb et al. 2001, DEVIATIONS D24).
+
+    Same leader-follower update as S7 (3 leaders broadcast to all, followers move toward the leaders' consensus,
+    leaders revise from their own evidence and each other), but the 3 leaders are the agents with the highest
+    corroboration score instead of the highest reported confidence.
+    ABM proxy for the LLM score (own claims confirmed by another agent's own claim): agent j's score is the
+    number of facts j holds that at least one other agent also holds. Honest agents report their own facts
+    truthfully, so in the ABM a held fact is never contradicted and the "fewer contradicted claims" tie-break
+    is constant; ties are broken by seeded noise. Attackers and uninformed agents hold no facts, so they score 0
+    and are elected only when fewer than 3 visible agents have a positive score. Senders hidden by a module
+    (w_send = 0) cannot lead, as in S7. The score is static because ABM reports always restate the same facts."""
+
+    def init(self, sim):
+        n_f = len(sim.world.task.facts)
+        H = np.zeros((sim.N, n_f))
+        for i, h in enumerate(sim.world.holdings):
+            H[i, h] = 1.0
+        holders = H.sum(0)
+        self.score = (H * (holders[None, :] >= 2)).sum(1)       # facts j shares with at least one other agent
+        return super().init(sim)
+
+    def select_leaders(self, sim, rep):
+        sc = np.where(sim.w_send > 0, self.score, -1.0) + sim.rng.uniform(0, 1e-3, sim.N)
+        return np.argsort(-sc)[:3]
 
 
 class S9(Strategy):
@@ -413,8 +444,9 @@ class S11(Strategy):
 
 
 STRATEGY_CLASSES = {"S0a": S0a, "S0b": S0b, "S1": S1, "S2": S2, "S3": S3, "S4": S4, "S5": S5,
-                    "S6": S6, "S7": S7, "S8": S8, "S9": S9, "S10": S10, "S11": S11}
-SOCIAL = {"S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11"}
+                    "S6": S6, "S7": S7, "S8": S8, "S9": S9, "S10": S10, "S11": S11,
+                    "S12": S12}
+SOCIAL = {"S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12"}
 
 
 # ---------------------------------------------------------------- simulation

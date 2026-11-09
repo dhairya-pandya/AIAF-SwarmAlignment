@@ -9,12 +9,12 @@ from pathlib import Path
 
 import yaml
 
-STRATEGIES = ["S0a", "S0b", "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11"]
+STRATEGIES = ["S0a", "S0b", "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12"]
 TIER = {"S0a": 1, "S0b": 1, "S1": 1, "S2": 1, "S3": 1, "S4": 1, "S7": 1, "S9": 1,
-        "S5": 2, "S6": 2, "S8": 2, "S10": 3}   # S11 has no tier (exploratory)
-# Added after the pre-registration (DEVIATIONS D22): reported in cells, leaderboards and figures, marked
+        "S5": 2, "S6": 2, "S8": 2, "S10": 3}   # S11, S12 have no tier (exploratory)
+# Added after the pre-registration (DEVIATIONS D22, D24): reported in cells, leaderboards and figures, marked
 # exploratory, and excluded from every confirmatory hypothesis test (H0-H10).
-EXPLORATORY = {"S11"}
+EXPLORATORY = {"S11", "S12"}
 MODULES = ["M1", "M2", "M3", "M4", "M5", "M6"]
 ATTACKS = ["A1", "A2", "A3", "A4", "A5"]
 TOPOLOGIES = ["ring", "small_world", "scale_free", "star", "full"]

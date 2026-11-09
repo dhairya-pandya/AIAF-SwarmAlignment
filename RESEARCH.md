@@ -156,6 +156,10 @@ Contents
 - Learn: in a captive colony, how much a bat had received from a partner predicted how much it donated to that partner better than kinship did.
 - Use: supports modelling S11's influence weights as a function of each partner's track record rather than a fixed rank. Added post hoc on 2026-11-09; DOI checked against Crossref (title and authors match).
 
+**C16. Matriarchs as repositories of social knowledge in African elephants.** McComb, Moss, Durant, Baker & Sayialel, Science 2001, 292(5516):491-494. [doi:10.1126/science.1057895](https://doi.org/10.1126/science.1057895)
+- Learn: in Amboseli, families led by older matriarchs discriminated familiar from unfamiliar callers better in playback experiments and had higher reproductive success: the matriarch leads because of accumulated social knowledge that has proved reliable, not because of dominance or display.
+- Use: the inspiration for the exploratory strategy **S12** (elephant matriarch, DEVIATIONS D24): S7's leader-follower structure with leaders elected by how often their first-hand facts were independently confirmed, instead of by self-reported confidence. Added post hoc on 2026-11-09; title, authors, journal, volume and pages checked against Crossref. The DOI sometimes quoted for this paper, 10.1126/science.292.5516.491, does not resolve (Crossref and doi.org return 404); the registered DOI is 10.1126/science.1057895.
+
 ## D. Swarm-robotics dependability and security
 
 **D1. Towards dependable swarms and a new discipline of swarm engineering.** Winfield, Harper & Nembrini, SR 2004 / LNCS 3342, 2005. [doi:10.1007/978-3-540-30552-1_11](https://doi.org/10.1007/978-3-540-30552-1_11)

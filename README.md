@@ -15,14 +15,19 @@ Hackathon (Nov 6–8, 2026).
 
 ## Results at a glance
 
-These come from 405 LLM swarm runs (`gpt-oss-120b`, 12 agents, 6 seeds) and 327,600 runs of the calibrated agent-based twin. All numbers are in `results/results.json`, and the full write-up is in `paper/`.
+These come from 483 LLM swarm runs (`gpt-oss-120b`, 12 agents) and 327,600 runs of the calibrated agent-based twin. All numbers are in `results/`, and the write-up is in `paper/`.
 
-- **Hierarchies get captured.** The grey-wolf leader hierarchy is the only design that tips: contamination crosses 50% at an attacker fraction of f* = 0.21 [0.17, 0.39].
-- **Quorum works.** A honeybee-style quorum on first-hand evidence is the only defence that reduced LLM contamination (−0.17 [−0.31, −0.02]) without a measurable accuracy cost.
-- **Evaporation backfires.** Pheromone-style evaporation made the hierarchy worse (+0.31).
-- **The classical twin doesn't transfer.** It overestimates LLM contamination by 0.35 [0.24, 0.48] and does not rank conditions (ρ = −0.02).
-- **Topology reverses for LLMs.** Dense graphs *protect* debating LLM agents: each agent sees enough first-hand evidence to reject fabricated claims.
-- **Replay checked.** All 402 logged LLM runs replay byte-identically from the committed cache (`results/replay_check.csv`).
+**Confirmed by a pre-registered follow-up** (`STUDY2_PREREG.md`, fresh seeds, Holm over 3 tests):
+- **Leaderless debate beats the hierarchy.** When every agent sees all first-hand evidence, leaderless debate is far less contaminated than a hierarchy whose leaders are elected by self-reported confidence: 0.08 vs 0.70 (−0.62 [−0.81, −0.41]).
+- **Quorum reduces leader capture.** A honeybee-style quorum on first-hand evidence cuts it by −0.33 [−0.60, −0.03].
+- **Quorum helps sparse debate slightly** (−0.10, marginal).
+
+**Exploratory:**
+- **Knowledge-elected leaders are safer.** Elephant-style leaders, chosen by corroborated knowledge, cut capture from 0.70 to 0.31.
+- **Evaporation backfires.** Pheromone-style evaporation makes hierarchies worse.
+- **The classical twin doesn't transfer.** It overestimates LLM contamination by 0.35, and the topology effect reverses for reasoning agents.
+
+**Replay:** all logged LLM runs replay byte-identically from the committed cache.
 
 ## Setup
 

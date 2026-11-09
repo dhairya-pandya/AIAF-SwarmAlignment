@@ -51,6 +51,8 @@ Every entry was checked on 2026-11-09: arXiv IDs against the arXiv API (title ma
 51. Wilkinson, G. S. (1984). Reciprocal food sharing in the vampire bat. *Nature*, *308*(5955), 181–184. https://doi.org/10.1038/308181a0
 52. Carter, G. G., & Wilkinson, G. S. (2013). Food sharing in vampire bats: reciprocal help predicts donations more than relatedness or harassment. *Proceedings of the Royal Society B*, *280*(1753), 20122573. https://doi.org/10.1098/rspb.2012.2573
 
+53. McComb, K., Moss, C., Durant, S. M., Baker, L., & Sayialel, S. (2001). Matriarchs as repositories of social knowledge in African elephants. *Science*, *292*(5516), 491–494. https://doi.org/10.1126/science.1057895
+
 ## Cited only in DESIGN.md §6–§9 tables
 
 42. Sharma, M., Tong, M., Korbak, T., Duvenaud, D., Askell, A., Bowman, S. R., Cheng, N., Durmus, E., Hatfield-Dodds, Z., Johnston, S. R., Kravec, S., Maxwell, T., McCandlish, S., Ndousse, K., Rausch, O., Schiefer, N., Yan, D., Zhang, M., & Perez, E. (2024). Towards Understanding Sycophancy in Language Models. In *International Conference on Learning Representations (ICLR 2024)*. arXiv:2310.13548. https://arxiv.org/abs/2310.13548
@@ -120,6 +122,7 @@ Every entry was checked on 2026-11-09: arXiv IDs against the arXiv API (title ma
 
 | C14 | 51 | Wilkinson (1984) | yes | yes | Crossref title match for doi:10.1038/308181a0 |
 | C15 | 52 | Carter & Wilkinson (2013) | yes | yes | Crossref title match for doi:10.1098/rspb.2012.2573 |
+| C16 | 53 | McComb et al. (2001) | yes | yes | Crossref title match for doi:10.1126/science.1057895 |
 
 ## Notes
 

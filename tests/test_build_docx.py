@@ -211,7 +211,7 @@ def test_section_mapping(synth):
     assert "[Author to write]" in text
     assert "Old note" not in text
     assert bd.REPO_URL in text
-    assert "replayed byte-for-byte" in text
+    assert "replay byte-for-byte" in text
     # limitations appear both in the main body and in the required appendix section
     assert text.count("Small. Only N=12.") == 2
     paras = [p.text for p in doc.paragraphs]

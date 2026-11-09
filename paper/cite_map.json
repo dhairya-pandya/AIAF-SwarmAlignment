@@ -310,5 +310,11 @@
   "short": "Carter & Wilkinson (2013)",
   "verified": true,
   "url": "https://doi.org/10.1098/rspb.2012.2573"
+ },
+ "C16": {
+  "number": 53,
+  "short": "McComb et al. (2001)",
+  "verified": true,
+  "url": "https://doi.org/10.1126/science.1057895"
  }
 }

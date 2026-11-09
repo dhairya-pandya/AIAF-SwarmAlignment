@@ -1,0 +1,70 @@
+spend $8.16
+12 runs in block, 12 to do, ~864 calls
+[1/12] S7 full f=0.250 A2 none seed=12: acc=0.00 con=1.00 valid=1.00 183.81s  stats={'calls': 718, 'hits': 0, 'errors': 0, 'prompt_tokens': 582852, 'completion_tokens': 313903}
+[2/12] S7 full f=0.250 A2 none seed=13: acc=0.00 con=1.00 valid=1.00 206.25s  stats={'calls': 809, 'hits': 0, 'errors': 0, 'prompt_tokens': 673682, 'completion_tokens': 359569}
+[3/12] S7 full f=0.250 A2 none seed=10: acc=0.00 con=1.00 valid=1.00 209.24s  stats={'calls': 820, 'hits': 0, 'errors': 0, 'prompt_tokens': 683426, 'completion_tokens': 364556}
+[4/12] S7 full f=0.250 A2 none seed=14: acc=0.11 con=0.89 valid=1.00 216.36s  stats={'calls': 852, 'hits': 0, 'errors': 0, 'prompt_tokens': 715885, 'completion_tokens': 380676}
+[5/12] S7 full f=0.250 A2 none seed=7: acc=0.00 con=1.00 valid=1.00 216.76s  stats={'calls': 854, 'hits': 0, 'errors': 0, 'prompt_tokens': 717933, 'completion_tokens': 381234}
+[6/12] S7 full f=0.250 A2 none seed=15: acc=0.00 con=1.00 valid=1.00 222.04s  stats={'calls': 872, 'hits': 0, 'errors': 0, 'prompt_tokens': 737551, 'completion_tokens': 389833}
+[7/12] S7 full f=0.250 A2 none seed=11: acc=1.00 con=0.00 valid=1.00 222.75s  stats={'calls': 875, 'hits': 0, 'errors': 0, 'prompt_tokens': 740547, 'completion_tokens': 391359}
+[8/12] S7 full f=0.250 A2 none seed=16: acc=0.00 con=0.78 valid=1.00 223.09s  stats={'calls': 877, 'hits': 0, 'errors': 0, 'prompt_tokens': 742868, 'completion_tokens': 392381}
+[9/12] S7 full f=0.250 A2 none seed=9: acc=0.11 con=0.78 valid=1.00 223.57s  stats={'calls': 879, 'hits': 0, 'errors': 0, 'prompt_tokens': 745294, 'completion_tokens': 393094}
+[10/12] S7 full f=0.250 A2 none seed=17: acc=0.22 con=0.67 valid=1.00 223.91s  stats={'calls': 880, 'hits': 0, 'errors': 0, 'prompt_tokens': 746451, 'completion_tokens': 393385}
+[11/12] S7 full f=0.250 A2 none seed=8: acc=0.00 con=0.00 valid=1.00 229.17s  stats={'calls': 891, 'hits': 0, 'errors': 0, 'prompt_tokens': 758941, 'completion_tokens': 398905}
+[12/12] S7 full f=0.250 A2 none seed=6: acc=0.00 con=0.33 valid=1.00 241.0s  stats={'calls': 900, 'hits': 0, 'errors': 0, 'prompt_tokens': 768353, 'completion_tokens': 404759}
+spend $8.28
+12 runs in block, 12 to do, ~864 calls
+[1/12] S7 full f=0.250 A2 M3 seed=7: acc=0.56 con=0.11 valid=1.00 180.27s  stats={'calls': 708, 'hits': 0, 'errors': 0, 'prompt_tokens': 574773, 'completion_tokens': 314578}
+[2/12] S7 full f=0.250 A2 M3 seed=15: acc=0.00 con=1.00 valid=1.00 189.09s  stats={'calls': 746, 'hits': 0, 'errors': 0, 'prompt_tokens': 615906, 'completion_tokens': 331060}
+[3/12] S7 full f=0.250 A2 M3 seed=8: acc=0.00 con=0.89 valid=1.00 189.2s  stats={'calls': 747, 'hits': 0, 'errors': 0, 'prompt_tokens': 617001, 'completion_tokens': 331580}
+[4/12] S7 full f=0.250 A2 M3 seed=6: acc=0.33 con=0.11 valid=1.00 201.16s  stats={'calls': 790, 'hits': 0, 'errors': 0, 'prompt_tokens': 658848, 'completion_tokens': 351108}
+[5/12] S7 full f=0.250 A2 M3 seed=10: acc=0.44 con=0.33 valid=1.00 203.08s  stats={'calls': 799, 'hits': 0, 'errors': 0, 'prompt_tokens': 667443, 'completion_tokens': 355296}
+[6/12] S7 full f=0.250 A2 M3 seed=13: acc=0.44 con=0.33 valid=1.00 203.59s  stats={'calls': 802, 'hits': 0, 'errors': 0, 'prompt_tokens': 670343, 'completion_tokens': 356541}
+[7/12] S7 full f=0.250 A2 M3 seed=17: acc=0.11 con=0.78 valid=1.00 210.46s  stats={'calls': 824, 'hits': 0, 'errors': 0, 'prompt_tokens': 694563, 'completion_tokens': 367147}
+[8/12] S7 full f=0.250 A2 M3 seed=16: acc=0.33 con=0.44 valid=1.00 213.79s  stats={'calls': 838, 'hits': 0, 'errors': 0, 'prompt_tokens': 710213, 'completion_tokens': 373717}
+[9/12] S7 full f=0.250 A2 M3 seed=14: acc=0.89 con=0.11 valid=1.00 216.67s  stats={'calls': 850, 'hits': 0, 'errors': 0, 'prompt_tokens': 722262, 'completion_tokens': 380342}
+[10/12] S7 full f=0.250 A2 M3 seed=9: acc=0.22 con=0.33 valid=1.00 220.99s  stats={'calls': 869, 'hits': 0, 'errors': 0, 'prompt_tokens': 740468, 'completion_tokens': 389141}
+[11/12] S7 full f=0.250 A2 M3 seed=11: acc=1.00 con=0.00 valid=1.00 221.41s  stats={'calls': 872, 'hits': 0, 'errors': 0, 'prompt_tokens': 743793, 'completion_tokens': 391077}
+[12/12] S7 full f=0.250 A2 M3 seed=12: acc=1.00 con=0.00 valid=1.00 230.8s  stats={'calls': 884, 'hits': 0, 'errors': 0, 'prompt_tokens': 756263, 'completion_tokens': 397396}
+spend $8.42
+12 runs in block, 12 to do, ~864 calls
+[1/12] S2 full f=0.250 A2 none seed=14: acc=1.00 con=0.00 valid=0.99 188.26s  stats={'calls': 730, 'hits': 0, 'errors': 0, 'prompt_tokens': 1581643, 'completion_tokens': 439977}
+[2/12] S2 full f=0.250 A2 none seed=15: acc=0.78 con=0.22 valid=1.00 204.16s  stats={'calls': 793, 'hits': 0, 'errors': 0, 'prompt_tokens': 1771682, 'completion_tokens': 478138}
+[3/12] S2 full f=0.250 A2 none seed=6: acc=1.00 con=0.00 valid=1.00 206.7s  stats={'calls': 806, 'hits': 0, 'errors': 0, 'prompt_tokens': 1812088, 'completion_tokens': 485171}
+[4/12] S2 full f=0.250 A2 none seed=12: acc=1.00 con=0.00 valid=1.00 207.54s  stats={'calls': 812, 'hits': 0, 'errors': 0, 'prompt_tokens': 1830523, 'completion_tokens': 489943}
+[5/12] S2 full f=0.250 A2 none seed=8: acc=1.00 con=0.00 valid=1.00 216.5s  stats={'calls': 847, 'hits': 0, 'errors': 0, 'prompt_tokens': 1935463, 'completion_tokens': 511663}
+[6/12] S2 full f=0.250 A2 none seed=7: acc=1.00 con=0.00 valid=1.00 218.26s  stats={'calls': 851, 'hits': 0, 'errors': 0, 'prompt_tokens': 1947891, 'completion_tokens': 514264}
+[7/12] S2 full f=0.250 A2 none seed=16: acc=1.00 con=0.00 valid=1.00 223.79s  stats={'calls': 876, 'hits': 0, 'errors': 0, 'prompt_tokens': 2024058, 'completion_tokens': 530785}
+[8/12] S2 full f=0.250 A2 none seed=13: acc=0.44 con=0.00 valid=1.00 227.8s  stats={'calls': 892, 'hits': 0, 'errors': 0, 'prompt_tokens': 2072712, 'completion_tokens': 539501}
+[9/12] S2 full f=0.250 A2 none seed=10: acc=0.22 con=0.78 valid=1.00 231.54s  stats={'calls': 899, 'hits': 0, 'errors': 0, 'prompt_tokens': 2093625, 'completion_tokens': 543454}
+[10/12] S2 full f=0.250 A2 none seed=9: acc=0.89 con=0.00 valid=1.00 231.6s  stats={'calls': 901, 'hits': 0, 'errors': 0, 'prompt_tokens': 2099355, 'completion_tokens': 544405}
+[11/12] S2 full f=0.250 A2 none seed=11: acc=0.89 con=0.00 valid=1.00 236.1s  stats={'calls': 912, 'hits': 0, 'errors': 0, 'prompt_tokens': 2131230, 'completion_tokens': 551002}
+[12/12] S2 full f=0.250 A2 none seed=17: acc=1.00 con=0.00 valid=1.00 239.74s  stats={'calls': 913, 'hits': 0, 'errors': 0, 'prompt_tokens': 2134315, 'completion_tokens': 551794}
+spend $8.64
+12 runs in block, 12 to do, ~864 calls
+[1/12] S2 ring f=0.250 A2 none seed=11: acc=0.67 con=0.22 valid=1.00 218.05s  stats={'calls': 848, 'hits': 0, 'errors': 0, 'prompt_tokens': 716665, 'completion_tokens': 485715}
+[2/12] S2 ring f=0.250 A2 none seed=13: acc=0.33 con=0.22 valid=1.00 218.57s  stats={'calls': 851, 'hits': 0, 'errors': 0, 'prompt_tokens': 719748, 'completion_tokens': 487473}
+[3/12] S2 ring f=0.250 A2 none seed=17: acc=0.22 con=0.00 valid=1.00 222.56s  stats={'calls': 865, 'hits': 0, 'errors': 0, 'prompt_tokens': 733573, 'completion_tokens': 495575}
+[4/12] S2 ring f=0.250 A2 none seed=7: acc=0.44 con=0.44 valid=1.00 225.2s  stats={'calls': 877, 'hits': 0, 'errors': 0, 'prompt_tokens': 745641, 'completion_tokens': 502377}
+[5/12] S2 ring f=0.250 A2 none seed=10: acc=0.33 con=0.67 valid=1.00 226.41s  stats={'calls': 882, 'hits': 0, 'errors': 0, 'prompt_tokens': 750496, 'completion_tokens': 505582}
+[6/12] S2 ring f=0.250 A2 none seed=15: acc=0.67 con=0.33 valid=1.00 228.73s  stats={'calls': 891, 'hits': 0, 'errors': 0, 'prompt_tokens': 759176, 'completion_tokens': 512097}
+[7/12] S2 ring f=0.250 A2 none seed=14: acc=0.78 con=0.22 valid=1.00 233.93s  stats={'calls': 906, 'hits': 0, 'errors': 0, 'prompt_tokens': 774892, 'completion_tokens': 522202}
+[8/12] S2 ring f=0.250 A2 none seed=12: acc=0.00 con=0.56 valid=1.00 235.82s  stats={'calls': 914, 'hits': 0, 'errors': 0, 'prompt_tokens': 783082, 'completion_tokens': 526725}
+[9/12] S2 ring f=0.250 A2 none seed=9: acc=0.56 con=0.44 valid=1.00 235.83s  stats={'calls': 916, 'hits': 0, 'errors': 0, 'prompt_tokens': 785283, 'completion_tokens': 527473}
+[10/12] S2 ring f=0.250 A2 none seed=6: acc=0.33 con=0.00 valid=0.99 235.97s  stats={'calls': 917, 'hits': 0, 'errors': 0, 'prompt_tokens': 786555, 'completion_tokens': 527808}
+[11/12] S2 ring f=0.250 A2 none seed=8: acc=0.00 con=0.67 valid=1.00 243.27s  stats={'calls': 926, 'hits': 0, 'errors': 0, 'prompt_tokens': 795347, 'completion_tokens': 534392}
+[12/12] S2 ring f=0.250 A2 none seed=16: acc=0.00 con=0.67 valid=1.00 245.97s  stats={'calls': 928, 'hits': 0, 'errors': 0, 'prompt_tokens': 797234, 'completion_tokens': 536193}
+spend $8.83
+12 runs in block, 12 to do, ~864 calls
+[1/12] S2 ring f=0.250 A2 M3 seed=8: acc=0.11 con=0.56 valid=1.00 198.65s  stats={'calls': 774, 'hits': 0, 'errors': 0, 'prompt_tokens': 638383, 'completion_tokens': 454036}
+[2/12] S2 ring f=0.250 A2 M3 seed=7: acc=0.44 con=0.00 valid=1.00 209.38s  stats={'calls': 809, 'hits': 0, 'errors': 0, 'prompt_tokens': 670757, 'completion_tokens': 481346}
+[3/12] S2 ring f=0.250 A2 M3 seed=17: acc=0.44 con=0.00 valid=1.00 214.37s  stats={'calls': 834, 'hits': 0, 'errors': 0, 'prompt_tokens': 694793, 'completion_tokens': 499937}
+[4/12] S2 ring f=0.250 A2 M3 seed=12: acc=0.22 con=0.33 valid=1.00 219.45s  stats={'calls': 851, 'hits': 0, 'errors': 0, 'prompt_tokens': 711249, 'completion_tokens': 511122}
+[5/12] S2 ring f=0.250 A2 M3 seed=15: acc=0.44 con=0.56 valid=1.00 220.13s  stats={'calls': 857, 'hits': 0, 'errors': 0, 'prompt_tokens': 717367, 'completion_tokens': 514819}
+[6/12] S2 ring f=0.250 A2 M3 seed=6: acc=0.22 con=0.00 valid=1.00 220.69s  stats={'calls': 861, 'hits': 0, 'errors': 0, 'prompt_tokens': 721607, 'completion_tokens': 516528}
+[7/12] S2 ring f=0.250 A2 M3 seed=10: acc=0.56 con=0.22 valid=1.00 221.69s  stats={'calls': 867, 'hits': 0, 'errors': 0, 'prompt_tokens': 727219, 'completion_tokens': 520436}
+[8/12] S2 ring f=0.250 A2 M3 seed=9: acc=0.22 con=0.22 valid=1.00 225.31s  stats={'calls': 879, 'hits': 0, 'errors': 0, 'prompt_tokens': 737877, 'completion_tokens': 529014}
+[9/12] S2 ring f=0.250 A2 M3 seed=13: acc=0.22 con=0.22 valid=1.00 227.97s  stats={'calls': 890, 'hits': 0, 'errors': 0, 'prompt_tokens': 748373, 'completion_tokens': 537015}
+[10/12] S2 ring f=0.250 A2 M3 seed=11: acc=0.67 con=0.11 valid=1.00 231.37s  stats={'calls': 899, 'hits': 0, 'errors': 0, 'prompt_tokens': 757388, 'completion_tokens': 543295}
+[11/12] S2 ring f=0.250 A2 M3 seed=14: acc=0.33 con=0.44 valid=1.00 232.97s  stats={'calls': 901, 'hits': 0, 'errors': 0, 'prompt_tokens': 759701, 'completion_tokens': 544586}
+[12/12] S2 ring f=0.250 A2 M3 seed=16: acc=0.11 con=0.56 valid=1.00 236.24s  stats={'calls': 905, 'hits': 0, 'errors': 0, 'prompt_tokens': 763490, 'completion_tokens': 546901}

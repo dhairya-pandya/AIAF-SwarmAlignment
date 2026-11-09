@@ -1,6 +1,6 @@
 """Exploratory S12 (elephant matriarch) on LLM swarms, DEVIATIONS D24. Not confirmatory.
 
-Runs S12 at f=3/12 on Study 2 seeds 6-17 (paired with Study 2 arm a, the S7 hierarchy) and at f=0 on seeds
+Runs S12 at f=3/12 on confirmation seeds 6-17 (paired with confirmation arm a, the S7 hierarchy) and at f=0 on seeds
 0-5 (paired with the Study 1 core S7 and S2 runs) -> results/s12_llm.csv; summary -> results/s12_llm.json."""
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ def main() -> None:
     cfgs += [RunConfig(strategy="S12", f=0.0, seed=s, backend="llm", models=[MODEL]) for s in range(6)]
     run_block(cfgs, OUT, ".cache/llm.sqlite", "logs", 12, 12)
     s12 = pd.read_csv(OUT)
-    s2 = pd.read_csv("results/study2.csv")
+    s2 = pd.read_csv("results/confirmation.csv")
     core = pd.read_csv("results/stageB_core.csv")
     att, clean = s12[s12.f > 0].set_index("seed"), s12[s12.f == 0].set_index("seed")
     s7a = s2[(s2.strategy == "S7") & (s2.module == "none")].set_index("seed")

@@ -1,7 +1,7 @@
-"""Study 2 (STUDY2_PREREG.md): run the 60 confirmatory LLM runs on fresh seeds, then the pre-registered tests.
+"""Confirmation set (docs/CONFIRMATION_PREREG.md): run the 60 confirmatory LLM runs on fresh seeds, then the pre-registered tests.
 
-    python scripts/study2.py run       # LLM runs -> results/study2.csv (resumable; stops before $9.85 spend)
-    python scripts/study2.py analyze   # tests C1-C3 -> results/study2.json
+    python scripts/confirmation.py run       # LLM runs -> results/confirmation.csv (resumable; stops before $9.85 spend)
+    python scripts/confirmation.py analyze   # tests C1-C3 -> results/confirmation.json
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from hiveguard.config import RunConfig  # noqa: E402
 
 MODEL = "openrouter:openai/gpt-oss-120b"
 SEEDS = range(6, 18)
-OUT = "results/study2.csv"
+OUT = "results/confirmation.csv"
 BUDGET_STOP = 9.85
 ARMS = {"a": ("S7", "full", []), "b": ("S7", "full", ["M3"]), "c": ("S2", "full", []),
         "d": ("S2", "ring", []), "e": ("S2", "ring", ["M3"])}
@@ -85,8 +85,8 @@ def analyze() -> dict:
             r["verdict"] = "inconclusive"
     arms = df.groupby("arm").agg(con=("con", "mean"), acc=("acc", "mean"), n=("seed", "count")).round(3)
     out = {"tests": res, "arms": arms.reset_index().to_dict("records"), "seeds": list(SEEDS),
-           "prereg": "STUDY2_PREREG.md"}
-    Path("results/study2.json").write_text(json.dumps(out, indent=2))
+           "prereg": "docs/CONFIRMATION_PREREG.md"}
+    Path("results/confirmation.json").write_text(json.dumps(out, indent=2))
     print(json.dumps(out, indent=2))
     return out
 

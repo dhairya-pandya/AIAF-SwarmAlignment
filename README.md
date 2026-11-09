@@ -1,119 +1,90 @@
+<p align="center"><img src="design/out/banner.png" alt="Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI" width="100%"></p>
+
 # Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI
 
-**Which bio-inspired swarm designs resist compromised agents, and which defences are worth their cost?** A safety benchmark of bio-inspired coordination
-strategies for LLM agent swarms with compromised agents. The code package is `hiveguard`. Built for the Apart × AIAF Swarm Alignment
-Hackathon (Nov 6–8, 2026).
+**Which bio-inspired coordination designs keep a swarm of LLM agents correct when some of its members are compromised, and which defences are worth their cost?**
 
-- [DESIGN.md](DESIGN.md): pre-registration (hypotheses, metrics, analysis plan). Committed alone in the first commit, before any code.
-- [RESEARCH.md](RESEARCH.md): literature notes.
-- [DEVIATIONS.md](DEVIATIONS.md): every change made to the pre-registered plan during the sprint.
-- [paper/paper.md](paper/paper.md): the report draft.
+Dhairya Pandya, IIITDM Jabalpur. Apart × AIAF Swarm Alignment Hackathon, November 2026 (Track 2: Science of Agent Networks; Track 4: Multi-Agent Oversight and Control).
 
-**Status: work in progress.** No results have been produced yet.
+[Report (PDF)](paper/SwarmImmunity_report.pdf) · [Interactive results and replay viewer](https://swarm-immunity.vercel.app) · [Pre-registration](docs/DESIGN.md) · [Confirmatory pre-registration](docs/CONFIRMATION_PREREG.md)
 
-**Interactive results and replay viewer:** https://swarm-immunity.vercel.app
+## Key findings
 
-## Results at a glance
+The evidence base is 483 LLM swarm runs (`gpt-oss-120b`, 12 agents) and 327,600 runs of an agent-based twin calibrated on pilot LLM data. The task is a hidden-profile decision that forces agents to pool facts, and up to 25% of agents push a wrong option.
 
-These come from 483 LLM swarm runs (`gpt-oss-120b`, 12 agents) and 327,600 runs of the calibrated agent-based twin. All numbers are in `results/`, and the write-up is in `paper/`.
+| Finding | Evidence |
+|---|---|
+| **Leaderless evidence-sharing is the safest design.** When every agent sees every peer's first-hand claims, debate stays nearly uncontaminated (0.06) and is the most useful design. | Confirmatory: vs the confidence-elected hierarchy, contamination −0.62 [−0.81, −0.41], Holm p < 0.001 |
+| **Leaders elected by self-reported confidence get captured.** The grey-wolf hierarchy tips at f\* = 0.21: attackers who claim confidence become the leaders. | Contamination 0.67 at 3 of 12 compromised (18 seeds) |
+| **Leadership is safe only when it is earned.** A honeybee-style quorum on first-hand evidence halves leader capture. Electing leaders by corroborated knowledge, as elephant matriarchs lead, does the same. | Quorum, confirmatory: −0.33 [−0.60, −0.03], p = 0.030. Matriarch, exploratory: 0.31 vs 0.70 |
+| **Pheromone-style evaporation backfires.** Honest agents revise and attackers persist, so penalising persistence protects the attackers. | +0.31 contamination on the hierarchy |
+| **Classical swarm theory does not transfer to reasoning agents.** The calibrated twin overestimates LLM contamination and reverses the topology effect, because LLM agents check evidence instead of averaging opinions. | Overestimate +0.35 [0.24, 0.48]; rank correlation −0.02 |
 
-**Confirmed by a pre-registered follow-up** (`STUDY2_PREREG.md`, fresh seeds, Holm over 3 tests):
-- **Leaderless debate beats the hierarchy.** When every agent sees all first-hand evidence, leaderless debate is far less contaminated than a hierarchy whose leaders are elected by self-reported confidence: 0.08 vs 0.70 (−0.62 [−0.81, −0.41]).
-- **Quorum reduces leader capture.** A honeybee-style quorum on first-hand evidence cuts it by −0.33 [−0.60, −0.03].
-- **Quorum helps sparse debate slightly** (−0.10, marginal).
+Brackets are 95% bootstrap CIs over seeds. "Confirmatory" contrasts were tested on fresh seeds under a second pre-registration, committed before those runs.
 
-**Exploratory:**
-- **Knowledge-elected leaders are safer.** Elephant-style leaders, chosen by corroborated knowledge, cut capture from 0.70 to 0.31.
-- **Evaporation backfires.** Pheromone-style evaporation makes hierarchies worse.
-- **The classical twin doesn't transfer.** It overestimates LLM contamination by 0.35, and the topology effect reverses for reasoning agents.
+## Repository layout
 
-**Replay:** all logged LLM runs replay byte-identically from the committed cache.
-
-## Setup
-
-```bash
-uv venv -p 3.12 && uv pip install -e '.[dev]'
-pytest
+```
+paper/        report: paper.md (source), SwarmImmunity_report.docx/.pdf (template build), references.md, build_docx.py
+hiveguard/    the benchmark: task generator, strategies (LLM + agent-based twin), attacks, defences, metrics, analysis
+scripts/      run pipelines: stage_b_pipeline.py, confirmation.py, s12_llm.py, replay_all.py
+results/      every run table, results.json (all statistics), confirmation.json, frozen ABM parameters, run logs
+logs/         one JSONL per LLM run: config, every prompt, raw reply, parsed output, result
+.cache/       llm.sqlite: every LLM response, so all runs replay offline
+figures/      report figures (figures/paper: method figures)
+docs/         DESIGN.md (pre-registration), CONFIRMATION_PREREG.md, DEVIATIONS.md, EXPERIMENT_LOG.md,
+              EXPERIMENT_PLAN.md, RESEARCH.md (verified literature notes)
+analysis/     exploratory log analysis (exposure.py)
+site/         static results site with a replay viewer (deployed on Vercel)
+design/       visual design kit: tokens, fonts, pixel sprites, banner, social cards
+video/        narrated video generator, scene script and explainer animations
+tests/        208 tests
 ```
 
-## Pipeline
+## Reproduce
 
 ```bash
-# LLM providers (any subset). The mock provider works offline.
-export OPENROUTER_API_KEY=...   # or NVIDIA_API_KEY=..., or run `ollama serve` with a model pulled
-
-# 1. Pilot (DESIGN §10.1): N=6, R=3, S2 and S4, f in {0, 1/6}, 3 seeds per model; prints the go criteria
-hiveguard pilot --models openrouter:<model> nvidia:<model>
-
-# 2. Calibrate the ABM's kappa and lambda on the pilot runs, then freeze them
-hiveguard calibrate --pilot results/pilot.csv --out results/abm_params.json
-
-# 3. Stage A: ABM screen over the full grid, plus the red-team searchers
-hiveguard stageA --params results/abm_params.json
-hiveguard search --params results/abm_params.json --strategies S2 S4 S9 --topologies scale_free full
-
-# 4. Stage B: LLM blocks
-hiveguard stageB --block core    --models openrouter:<model>
-hiveguard stageB --block tier2   --models openrouter:<model>
-hiveguard stageB --block modules --strategies <best> <worst> --models openrouter:<model>
-hiveguard stageB --block attacks --strategies <best> --models openrouter:<model>
-hiveguard stageB --block confirm --strategies <most> <least> --redteam results/redteam.json --models openrouter:<model>
-
-# Replay any LLM run byte for byte from the cache
-hiveguard replay <run_id>
+uv venv -p 3.12 && uv pip install -e '.[dev]' && pytest
 ```
-
-Every LLM call is cached in `.cache/llm.sqlite`, keyed by `sha256(provider, model, prompt, seed, temperature)`.
-Every run writes `logs/<run_id>.jsonl`: config, then per agent and round the prompt, prompt hash, raw
-response, parsed output and choice.
-
-## Reproducing the results
-
-Every number in the report can be regenerated from this repository. Three levels of reproduction are available:
 
 | Level | Needs | Command | What it checks |
 |---|---|---|---|
-| 1. Re-analyse | nothing | `python -m hiveguard.run analyze` | figures, hypothesis verdicts and `results/results.json` from the committed run tables |
-| 2. Replay LLM runs | nothing (no API key, no cost) | `python -m hiveguard.run replay <run_id>` | re-executes a logged LLM run against the committed response cache `.cache/llm.sqlite` and checks that the log is **byte-identical** |
-| 3. Re-run | an OpenRouter key | `python scripts/stage_b_pipeline.py` | fresh LLM calls; results vary within the reported CIs because sampling is stochastic |
+| 1. Re-analyse | nothing | `python -m hiveguard.run analyze --stageA results/stageA_with_s11.csv` (see note) | all figures, hypothesis verdicts and `results/results.json` from the committed run tables |
+| 2. Replay | nothing: no API key, no cost | `python -m hiveguard.run replay <run_id>` or `python scripts/replay_all.py` | re-executes logged LLM runs against the committed response cache and checks that each log is byte-identical (all 480 logged runs pass: `results/replay_check.csv`) |
+| 3. Re-run | an OpenRouter key | `python scripts/stage_b_pipeline.py`, `python scripts/confirmation.py run` | fresh LLM calls; results vary within the reported CIs |
 
-The ABM results (Stage A, red team) are deterministic given the seed and the frozen parameters in `results/abm_params.json`. To rebuild them, run `python -m hiveguard.run stageA --params results/abm_params.json` and `python -m hiveguard.run search ...`, with the arguments recorded in EXPERIMENT_LOG.md.
+Note: `results/stageA_with_s11.csv` is the concatenation of `results/stageA.csv` and `results/stageA_s11.csv`. The agent-based results are deterministic given the seed and `results/abm_params.json`; the commands that produced every file are listed in [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md).
 
-The provenance of the results is recorded in these files:
-- `EXPERIMENT_LOG.md`: what was run and when, in time order;
-- `DEVIATIONS.md`: every change to the pre-registered plan;
-- `logs/*.jsonl`: one file per LLM run, holding the config, every prompt, raw reply, parsed output and the result;
-- `results/*.csv`: one row per run.
+## Method in brief
 
-## Code map
+- **Task.** Four fictional options with six weighted attributes. 24 facts are split so that fewer than 40% of agents can find the best option alone.
+- **Strategies.** 11 pre-registered ones: solo, majority vote, debate, particle swarm, ant stigmergy, bee colony, firefly, grey-wolf hierarchy, boids, honeybee dance with quorum, response thresholds. Two exploratory ones: vampire-bat reciprocity and elephant matriarch.
+- **Attacks.** Five types: confident assertion, fabricated first-hand claims, sleeper, sybil, maximal confidence.
+- **Defences.** Six modules: evaporation, stop signals, quorum on first-hand evidence, uninformed dilution, model diversity, sparse topology.
+- **Red team.** Five searchers (random, hub, GA, binary PSO, MAP-Elites) look for worst-case attacks on the twin, which are then replayed on LLM swarms.
 
-| File | Contents |
-|---|---|
-| `hiveguard/config.py` | `RunConfig`, seeding, YAML IO |
-| `hiveguard/task.py` | hidden-profile best-of-n generator |
-| `hiveguard/topology.py` | ring, small-world, scale-free, star, full |
-| `hiveguard/world.py` | task, graph, roles and target for one run (shared by ABM and LLM) |
-| `hiveguard/abm.py` | ABM twins of S0–S10 (plus exploratory S11, S12), attacks A1–A5, modules M1–M6 |
-| `hiveguard/search.py` | red-team searchers: random, hub, GA, binary PSO, MAP-Elites |
-| `hiveguard/stage_a.py` | Stage A grid and red-team runner (multiprocess) |
-| `hiveguard/schema.py` | pydantic output schema and tolerant JSON extraction |
-| `hiveguard/llm.py` | OpenAI-compatible client (NVIDIA, OpenRouter, Ollama, mock), rate limits, sqlite cache |
-| `hiveguard/agents.py` | prompt builders |
-| `hiveguard/llm_strategies.py` | LLM views and update instructions for S0–S10 (plus exploratory S11, S12) |
-| `hiveguard/env.py` | LLM round loop, modules, board, JSONL logs, replay |
-| `hiveguard/llm_runs.py` | pilot and Stage B blocks (resumable CSV) |
-| `hiveguard/calibrate.py` | kappa/lambda fit on pilot runs |
-| `hiveguard/metrics.py` | Acc, Con, T50, deadlock, consensus time, f*, bootstrap, Holm |
+Every symbol and equation is defined in the report's appendices B and C.
 
-## Pre-existing work declaration
+## Integrity
 
-Pre-sprint materials (written 2026-11-01 to 2026-11-05): `RESEARCH.md` (literature notes) and
-`DESIGN.md` (the pre-registration). No experiment code, data or results existed before the sprint
-began on 2026-11-06. All code under `hiveguard/`, `analysis/` and `tests/` was written during the sprint.
-
-SHA-256 of the pre-registration files at the first commit:
+- **Pre-registered.** The hypotheses H0 to H10 in [docs/DESIGN.md](docs/DESIGN.md) were committed before any experiment, and the confirmatory contrasts C1 to C3 in [docs/CONFIRMATION_PREREG.md](docs/CONFIRMATION_PREREG.md) before their runs. All 24 deviations from the plan are logged in [docs/DEVIATIONS.md](docs/DEVIATIONS.md).
+- **Verified references.** All 53 references in the reference list were checked against arXiv, Crossref or the source URL ([paper/references.md](paper/references.md)).
+- **Pre-existing work.** [docs/RESEARCH.md](docs/RESEARCH.md) (literature notes) and [docs/DESIGN.md](docs/DESIGN.md) (pre-registration) were written 2026-11-01 to 2026-11-05, before the sprint. No experiment code, data or results existed before the sprint began on 2026-11-06. All code was written during the sprint.
+- **File hashes at the first commit.** RESEARCH.md was later extended with new verified references (C14 to C16); DESIGN.md was not.
 
 ```
 0d8805c20d4e3973e1b076ce944b5de9abf806bda7b4d0714c26bd83b08cd5c8  DESIGN.md
 af96a648ac2a2bbecfa39a43cf36deb54f8f91747a50bf88d34c39644b4e8b60  RESEARCH.md
+```
+
+## Citation
+
+```bibtex
+@misc{pandya2026swarmimmunity,
+  title  = {Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI},
+  author = {Pandya, Dhairya},
+  year   = {2026},
+  note   = {Apart x AIAF Swarm Alignment Hackathon},
+  url    = {https://github.com/dhairya-pandya/AIAF-SwarmAlignment}
+}
 ```

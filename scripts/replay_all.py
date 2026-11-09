@@ -20,7 +20,7 @@ def check(rid: str) -> tuple[str, str]:
 
 
 def main() -> None:
-    files = sorted(Path("results").glob("stageB_*.csv")) + [Path("results/pilot.csv")]
+    files = sorted(Path("results").glob("stageB_*.csv")) + [Path(p) for p in ("results/pilot.csv", "results/confirmation.csv", "results/s12_llm.csv")]
     ids = sorted({r for f in files for r in pd.read_csv(f).run_id})
     with ProcessPoolExecutor(8) as ex:
         rows = list(ex.map(check, ids))

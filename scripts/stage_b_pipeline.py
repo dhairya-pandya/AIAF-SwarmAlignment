@@ -1,4 +1,4 @@
-"""Run the remaining Stage B blocks unattended, in plan order (EXPERIMENT_PLAN.md P2-P5).
+"""Run the remaining Stage B blocks unattended, in plan order (docs/EXPERIMENT_PLAN.md P2-P5).
 
 The best and worst Tier-1 strategies are picked by a fixed rule, written here before the core block is
 analysed. The rule uses the social Tier-1 strategies (S2, S3, S4, S7, S9), ranks them by mean contamination

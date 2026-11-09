@@ -36,7 +36,7 @@ PROVIDERS = {
 MODEL_EXTRA: dict[str, dict] = {
     "nvidia/nemotron-3.5-lightning-30b-a3b": {"chat_template_kwargs": {"enable_thinking": False}},
     "openai/gpt-oss-120b": {"reasoning": {"effort": "low"}},
-    # second and third families for M5 (oracle screen in EXPERIMENT_LOG.md, DEVIATIONS D21)
+    # second and third families for M5 (oracle screen in docs/EXPERIMENT_LOG.md, DEVIATIONS D21)
     "minimax/minimax-m3.1-flash": {"reasoning": {"effort": "low"}},
     "qwen/qwen3.6-35b-a3b": {"reasoning": {"effort": "low"}},
     "z-ai/glm-5.3-flash": {"reasoning": {"effort": "low"}},

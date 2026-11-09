@@ -45,7 +45,7 @@ TEXT_WIDTH_DXA = 9360
 
 LIMITATIONS_APPENDIX_HEADING = "Limitations and Dual-Use / Ethical Considerations"
 CODE_AND_DATA = [
-    "**Code, data and replay:** [{0}]({0}). Every LLM call is in the committed cache, and all logged runs replay "
+    "**Code, data and replay:** [{0}]({0}). Every LLM call is in the committed cache, and all 480 logged runs replay "
     "byte-for-byte without an API key (`python -m hiveguard.run replay <run_id>`). "
     "**Interactive results:** [https://swarm-immunity.vercel.app](https://swarm-immunity.vercel.app)".format(REPO_URL),
 ]

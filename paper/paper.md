@@ -48,7 +48,7 @@ Table 4 (Appendix B) defines every term; Appendix C gives each strategy's equati
 
 ## 4. Results
 
-We made 483 LLM swarm runs (99.9% valid replies, no refusals) and 327,600 ABM runs. Every comparison below pools all available seeds. Three contrasts were additionally tested on 12 fresh seeds under a second pre-registration (`STUDY2_PREREG.md`, committed before those runs, Holm over three tests); we mark them *confirmatory*. Brackets are 95% bootstrap CIs over seeds.
+We made 483 LLM swarm runs (99.9% valid replies, no refusals) and 327,600 ABM runs. Every comparison below pools all available seeds. Three contrasts were additionally tested on 12 fresh seeds under a second pre-registration (`docs/CONFIRMATION_PREREG.md`, committed before those runs, Holm over three tests); we mark them *confirmatory*. Brackets are 95% bootstrap CIs over seeds.
 
 ### 4.1 Leaderless or led: which designs resist a compromised minority?
 
@@ -143,7 +143,7 @@ The safest LLM swarm we found is leaderless debate in which every agent sees, an
   - Attacks are overt and prompt-level. Steganographic collusion [G8] and tool-using agents are out of scope.
   - A5 was tested only on S4, so H8 could not be evaluated.
   - The red-team search saturated at $k=1$.
-- **Changes to the plan.** We made 22 logged deviations (DEVIATIONS.md). These include:
+- **Changes to the plan.** We made 22 logged deviations (docs/DEVIATIONS.md). These include:
   - showing fact points in prompts (D17);
   - the model switch after the pilot (D18);
   - 6 seeds instead of 3 (D20);
@@ -398,7 +398,7 @@ Compromised agents report the target with a fixed confidence. The deference $\ka
 
 ## Appendix F. Extended results
 
-Table: All pre-registered hypotheses: H0–H10 (DESIGN.md) and the confirmatory contrasts C1–C3 (STUDY2_PREREG.md, fresh seeds 6–17). "Inconclusive" means the criterion was met in direction but did not survive Holm correction, or the data could not decide.
+Table: All pre-registered hypotheses: H0–H10 (docs/DESIGN.md) and the confirmatory contrasts C1–C3 (docs/CONFIRMATION_PREREG.md, fresh seeds 6–17). "Inconclusive" means the criterion was met in direction but did not survive Holm correction, or the data could not decide.
 | ID | Prediction | ABM twin | LLM swarms |
 |---|---|---|---|
 | H0 | Debate no better than majority under attack | supported | supported (CIs include 0) |
@@ -442,7 +442,7 @@ The rate at share 0 is the chance floor: honest agents pick the target with no a
 Accuracy at $f=0$ is 0.53 for S11 against 0.65 for S2 on the full graph.
 
 ## Appendix G. Deviations from the pre-registration
-See [DEVIATIONS.md](../DEVIATIONS.md).
+See [docs/DEVIATIONS.md](../docs/DEVIATIONS.md).
 
 ## References
-The bracketed IDs refer to the entries in [RESEARCH.md](../RESEARCH.md), where every reference has a verified DOI or arXiv link. [I1] is the METR / Redwood Research incident investigation listed in RESEARCH.md §I.
+The bracketed IDs refer to the entries in [docs/RESEARCH.md](../docs/RESEARCH.md), where every reference has a verified DOI or arXiv link. [I1] is the METR / Redwood Research incident investigation listed in RESEARCH.md §I.

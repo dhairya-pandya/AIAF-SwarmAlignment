@@ -1,4 +1,4 @@
-<p align="center"><img src="design/out/banner.png" alt="Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI" width="100%"></p>
+<p align="center"><img src="design/out/banner_dark@2x.png" alt="Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI" width="100%"></p>
 
 # Swarm Immunity: How Nature's Collectives Inspire Defences for Agentic AI
 

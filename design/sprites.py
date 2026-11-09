@@ -125,6 +125,21 @@ SPRITES: dict[str, list[str]] = {
         "............",
         "d...........",
     ],
+    # elephant (matriarch), side view facing right: domed back, big ear, tusk, trunk curling down, four legs
+    "elephant": [
+        "..........bbbb..",
+        "...bbbbb.bbbbbb.",
+        ".bbbbbbbbbddbbbb",
+        ".bbbbbbbbbddbbeb",
+        "dbbbbbbbbbddbbbb",
+        "dbbbbbbbbbbdbbbb",
+        ".bbbbbbbbbbbbhbb",
+        ".bbbbbbbbbbb.hb.",
+        ".bbbbbbbbbbb..b.",
+        ".bb.bb..bb.bb.b.",
+        ".bb.bb..bb.bb.bb",
+        ".dd.dd..dd.dd...",
+    ],
     # compromised agent: a tile frame with a cross through it
     "compromised": [
         "dddddddddddd",
@@ -151,9 +166,9 @@ SPRITES: dict[str, list[str]] = {
 # strategy id -> sprite (family markers)
 STRATEGY_SPRITE = {"S0a": "agent", "S0b": "agent", "S1": "agent", "S2": "agent", "S3": "particle", "S4": "ant",
                    "S5": "bee", "S6": "firefly", "S7": "wolf", "S8": "bird", "S9": "bee", "S10": "ant",
-                   "S11": "bat"}
+                   "S11": "bat", "S12": "elephant"}
 FAMILY_SPRITE = {"baseline": "agent", "abstract": "particle", "insects": "bee", "wolves": "wolf",
-                 "fireflies": "firefly", "birds": "bird", "bats": "bat"}
+                 "fireflies": "firefly", "birds": "bird", "bats": "bat", "elephants": "elephant"}
 
 
 # ------------------------------------------------------------------ palettes
